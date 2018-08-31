@@ -1,4 +1,4 @@
-package hoohoot.synapse.adapter.http;
+package hoohoot.synapse.adapter.http.http;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;

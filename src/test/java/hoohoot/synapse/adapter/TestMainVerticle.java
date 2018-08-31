@@ -1,6 +1,6 @@
 package hoohoot.synapse.adapter;
 
-import hoohoot.synapse.adapter.http.MainVerticle;
+import hoohoot.synapse.adapter.http.http.MainVerticle;
 import io.vertx.core.Vertx;
 import io.vertx.junit5.Timeout;
 import io.vertx.junit5.VertxExtension;
