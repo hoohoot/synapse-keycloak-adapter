@@ -1,0 +1,10 @@
+*.iml
+src/conf/config.json
+.idea
+.vertx
+.mvn
+target
+mvnw
+mvnw.cmd
+.editorconfig
+README.adoc
