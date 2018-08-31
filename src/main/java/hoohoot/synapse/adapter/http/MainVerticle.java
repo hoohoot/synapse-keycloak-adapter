@@ -1,4 +1,4 @@
-package io.vertx.keycloak;
+package hoohoot.synapse.adapter.http;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;

@@ -1,4 +1,4 @@
-package io.vertx.keycloak;
+package hoohoot.synapse.adapter.http;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.MultiMap;
@@ -46,13 +46,13 @@ class KeycloakClient extends AbstractVerticle {
       .putHeader("content-type", "application/x-www-form-urlencoded")
       .ssl(true)
       .sendForm(form, ar -> {
-      if (ar.succeeded()) {
-        System.out.println(ar.result().statusCode());
-        System.out.println(ar.result().bodyAsJsonObject());
-        ar.succeeded();
-      } else {
-        System.out.println("nope");
-      }
-    });
+        if (ar.succeeded()) {
+          System.out.println(ar.result().statusCode());
+          System.out.println(ar.result().bodyAsJsonObject());
+          ar.succeeded();
+        } else {
+          System.out.println("nope");
+        }
+      });
   }
 }
