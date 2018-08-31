@@ -1,4 +1,4 @@
-package hoohoot.synapse.adapter.http.http;
+package hoohoot.synapse.adapter.http;
 
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
@@ -23,9 +23,16 @@ public class MainVerticle extends AbstractVerticle {
     HttpServer server = vertx.createHttpServer();
     Router router = Router.router(vertx);
 
-    router.route().handler(BodyHandler.create());
-    router.post("/_matrix-internal/identity/v1/check_credentials")
+    final String loginUri = "/_matrix-internal/identity/v1/check_credentials";
+    router.route(loginUri).handler(BodyHandler.create());
+    router.post(loginUri)
       .handler(keycloakClient::requestBearerToken);
+    router.get("/ping").handler(res -> {
+      res.response().end(new JsonObject()
+        .put("ping", "pong")
+        .encodePrettily());
+    });
+
 
     Integer portNumber = config().getInteger("http.port");
 

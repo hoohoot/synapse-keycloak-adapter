@@ -21,7 +21,7 @@
     <junit-platform-surefire-provider.version>1.2.0</junit-platform-surefire-provider.version>
     <junit-platform-launcher.version>1.2.0</junit-platform-launcher.version>
 
-    <main.verticle>io.vertx.keycloak-synapse-adapter.MainVerticle</main.verticle>
+    <main.verticle>hoohoot.synapse.adapter.http.MainVerticle</main.verticle>
   </properties>
 
   <dependencyManagement>

@@ -1,6 +1,6 @@
-package hoohoot.synapse.adapter.http.http;
+package hoohoot.synapse.adapter.http;
 
-import hoohoot.synapse.adapter.http.models.TokenInfo;
+import hoohoot.synapse.adapter.models.UserInfoDigest;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.MultiMap;
 import io.vertx.core.json.JsonArray;
@@ -57,8 +57,12 @@ class KeycloakClient extends AbstractVerticle {
         if (ar.succeeded()) {
           if (ar.result().statusCode() == 200) {
             JsonObject keycloakResponse = ar.result().bodyAsJsonObject();
-            TokenInfo userinfo = extractTokentInfo(keycloakResponse.getString("access_token"));
+            UserInfoDigest userinfo = extractTokentInfo(keycloakResponse.getString("access_token"));
             JsonObject synapseLoginBody = buildSynapseLoginJsonBody(userinfo);
+            routingContext.response().end(synapseLoginBody.encodePrettily());
+          } else if (ar.result().statusCode() == 401) {
+            UserInfoDigest userInfoDigest = new UserInfoDigest("", keycloakUsername, false);
+            JsonObject synapseLoginBody = buildSynapseLoginJsonBody(userInfoDigest);
             routingContext.response().end(synapseLoginBody.encodePrettily());
           }
           ar.succeeded();
@@ -70,12 +74,12 @@ class KeycloakClient extends AbstractVerticle {
   }
 
   /**
-   * This method decode the access token payload and return a TokenInfo object
+   * This method decode the access token payload and return a UserInfoDigest object
    * with the necessary synapse login info
    * @param bearer the access token delivered by KC
-   * @return TokenInfo
+   * @return UserInfoDigest
    */
-  public TokenInfo extractTokentInfo(String bearer) {
+  public UserInfoDigest extractTokentInfo(String bearer) {
     String[] splittedJWT = bearer.split("\\.");
     byte[] decodedBytes = Base64.getDecoder().decode(splittedJWT[1]);
     String decodedPayload = new String(decodedBytes);
@@ -87,34 +91,34 @@ class KeycloakClient extends AbstractVerticle {
     if (payload.getJsonObject("realm_access")
       .getJsonArray("roles")
       .contains("matrix_user")) {
-      return new TokenInfo(email, preferedUsername, true);
+      return new UserInfoDigest(email, preferedUsername, true);
     }
     else {
-      return new TokenInfo(email, preferedUsername, false);
+      return new UserInfoDigest(email, preferedUsername, false);
     }
 
   }
 
   /**
    * Build the JsonObject expected synapse to log the user in
-   * @param tokenInfo TokenInfo
+   * @param userInfoDigest UserInfoDigest
    * @return JsonObject containing synapse login request
    */
-  public JsonObject buildSynapseLoginJsonBody(TokenInfo tokenInfo) {
+  public JsonObject buildSynapseLoginJsonBody(UserInfoDigest userInfoDigest) {
 
     JsonObject auth = new JsonObject();
 
-    auth.put("success", tokenInfo.isMatrixUser());
-    auth.put("mxid", "@" + tokenInfo.getPreferedUserName() + ":" + this.synapseUrl);
+    auth.put("success", userInfoDigest.isMatrixUser());
+    auth.put("mxid", "@" + userInfoDigest.getPreferedUserName() + ":" + this.synapseUrl);
 
     JsonObject profile = new JsonObject();
-    profile.put("display_name", tokenInfo.getPreferedUserName());
+    profile.put("display_name", userInfoDigest.getPreferedUserName());
 
     JsonArray treePids = new JsonArray();
 
     JsonObject mailPid = new JsonObject();
     mailPid.put("medium", "email");
-    mailPid.put("address", tokenInfo.getEmail());
+    mailPid.put("address", userInfoDigest.getEmail());
 
     treePids.add(mailPid);
 

@@ -8,3 +8,4 @@ mvnw
 mvnw.cmd
 .editorconfig
 README.adoc
+src/test/resources/config.json
