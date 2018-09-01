@@ -1,5 +1,6 @@
 package hoohoot.synapse.adapter.http;
 
+import hoohoot.synapse.adapter.conf.MainConfiguration;
 import hoohoot.synapse.adapter.models.UserInfoDigest;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.MultiMap;
@@ -13,33 +14,21 @@ import java.util.Base64;
 
 class KeycloakClient extends AbstractVerticle {
 
-  private final String synapseUrl;
   private WebClient webClient;
-  private JsonObject config;
-  private final JsonObject keycloakConfig;
-  private final String keycloakHost;
+  private MainConfiguration config;
 
-  protected KeycloakClient(WebClient webClient, JsonObject config) {
+  protected KeycloakClient(WebClient webClient, MainConfiguration config) {
     this.webClient = webClient;
     this.config = config;
-    this.synapseUrl = config.getString("synapse.host");
-    this.keycloakConfig = config.getJsonObject("keycloak");
-    this.keycloakHost = keycloakConfig.getString("host");
-
   }
 
   public void requestBearerToken(RoutingContext routingContext) {
-
-    final String keycloakClientUri = keycloakConfig.getString("client.uri");
-    final String keycloakBasicAuth = keycloakConfig.getString("client.basic");
-
-    final String synapseHost = config.getString("synapse.host");
 
     JsonObject userInfo = routingContext.getBodyAsJson().getJsonObject("user");
     String username = userInfo.getString("id");
 
     final String keycloakPassword = userInfo.getString("password");
-    username = username.replace(":" + synapseHost, "");
+    username = username.replace(":" + config.SYNAPSE_HOST, "");
     username = username.substring(1);
 
     final String keycloakUsername = username;
@@ -49,8 +38,8 @@ class KeycloakClient extends AbstractVerticle {
     form.add("password", keycloakPassword);
     form.add("grant_type", "password");
 
-    webClient.post(443, keycloakHost, keycloakClientUri)
-      .putHeader("Authorization", keycloakBasicAuth)
+    webClient.post(443, config.KEYCLOAK_HOST, config.KEYCLOAK_CLIENT_URI)
+      .putHeader("Authorization", config.KEYCLOAK_CLIENT_BASIC)
       .putHeader("content-type", "application/x-www-form-urlencoded")
       .ssl(true)
       .sendForm(form, ar -> {
@@ -109,7 +98,7 @@ class KeycloakClient extends AbstractVerticle {
     JsonObject auth = new JsonObject();
 
     auth.put("success", userInfoDigest.isMatrixUser());
-    auth.put("mxid", "@" + userInfoDigest.getPreferedUserName() + ":" + this.synapseUrl);
+    auth.put("mxid", "@" + userInfoDigest.getPreferedUserName() + ":" + config.SYNAPSE_URL);
 
     JsonObject profile = new JsonObject();
     profile.put("display_name", userInfoDigest.getPreferedUserName());
