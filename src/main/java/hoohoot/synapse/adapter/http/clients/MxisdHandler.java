@@ -37,8 +37,8 @@ public class MxisdHandler extends AbstractVerticle {
                 .putHeader("content-type", "application/x-www-form-urlencoded")
                 .ssl(true)
                 .sendForm(form, ar -> {
-                    logger.info(config.KEYCLOAK_HOST + "responded with status code " + ar.result().statusCode());
                     if (ar.succeeded()) {
+                        logger.info(config.KEYCLOAK_HOST + "responded with status code " + ar.result().statusCode());
                         if (ar.result().statusCode() == 200) {
                             JsonObject keycloakResponse = ar.result().bodyAsJsonObject();
                             UserInfoDigest userinfo = helper.extractTokentInfo(keycloakResponse
