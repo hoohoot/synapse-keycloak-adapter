@@ -1,16 +1,30 @@
 image: docker:latest
 
 services:
-- docker:dind
+  - docker:dind
+  
+variables:
+  DOCKER_DRIVER: overlay
 
 stages:
-- build
+  - build
+  - package
 
-build:
+maven-build:
+  image: maven:3-jdk-8
   stage: build
+  script: "mvn package -B -DskipTests"
+  artifacts:
+    paths:
+      - target/*.jar
+  
+build-master:
+  stage: package
   script:
-  - docker build . -t hoohoot/synapse-keycloak-adapter
-  - docker images
-  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD
-  - docker push hoohoot/synapse-keycloak-adapter
-  - docker logout
+    - docker build --pull -t "$CI_REGISTRY_IMAGE" .
+    - docker images
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
+    - docker push "$CI_REGISTRY_IMAGE"
+    - docker logout
+  only:
+    - master
