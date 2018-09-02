@@ -18,11 +18,6 @@ public class MainConfiguration {
     public final Integer SERVER_PORT = 8080;
 
     public MainConfiguration() throws ConfigurationException {
-<<<<<<< HEAD
-        SYNAPSE_HOST = getEnvironmentVariable("SYNAPSE_HOST");
-=======
->>>>>>> mxid
-
             SYNAPSE_HOST = getEnvironmentVariable("SYNAPSE_HOST");
 
             KEYCLOAK_HOST = getEnvironmentVariable("KEYCLOAK_HOST");
