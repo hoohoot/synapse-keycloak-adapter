@@ -1,6 +1,8 @@
 package hoohoot.synapse.adapter;
 
-import hoohoot.synapse.adapter.http.MainVerticle;
+import hoohoot.synapse.adapter.conf.MainConfiguration;
+import hoohoot.synapse.adapter.http.exceptions.ConfigurationException;
+import hoohoot.synapse.adapter.http.server.MainVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
@@ -12,7 +14,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.io.File;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -22,13 +23,7 @@ public class TestMainVerticle {
 
   private JsonObject config;
   @BeforeEach
-  void deploy_verticle(Vertx vertx, VertxTestContext testContext) {
-
-    ClassLoader classLoader = getClass().getClassLoader();
-    File file = new File(classLoader.getResource("config.json").getFile());
-
-    config = new JsonObject(vertx.fileSystem().readFileBlocking(file.toString()));
-
+  void deploy_verticle(Vertx vertx, VertxTestContext testContext) throws ConfigurationException {
     vertx.deployVerticle(new MainVerticle(), new DeploymentOptions().setConfig(config),
       testContext.succeeding(id -> testContext.completeNow()));
   }

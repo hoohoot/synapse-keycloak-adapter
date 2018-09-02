@@ -1,6 +1,8 @@
 package hoohoot.synapse.adapter.conf;
 
-import javax.naming.ConfigurationException;
+import hoohoot.synapse.adapter.http.exceptions.ConfigurationException;
+import io.vertx.core.json.JsonObject;
+
 import java.util.Optional;
 
 public class MainConfiguration {
@@ -16,15 +18,22 @@ public class MainConfiguration {
     public final Integer SERVER_PORT = 8080;
 
     public MainConfiguration() throws ConfigurationException {
+<<<<<<< HEAD
         SYNAPSE_HOST = getEnvironmentVariable("SYNAPSE_HOST");
+=======
+>>>>>>> mxid
 
-        KEYCLOAK_HOST = getEnvironmentVariable("KEYCLOAK_HOST");
-        KEYCLOAK_CLIENT_URI = getEnvironmentVariable("KEYCLOAK_CLIENT_URI");
-        KEYCLOAK_CLIENT_BASIC = getEnvironmentVariable("KEYCLOAK_CLIENT_BASIC");
+            SYNAPSE_HOST = getEnvironmentVariable("SYNAPSE_HOST");
+
+            KEYCLOAK_HOST = getEnvironmentVariable("KEYCLOAK_HOST");
+            KEYCLOAK_CLIENT_URI = getEnvironmentVariable("KEYCLOAK_CLIENT_URI");
+            KEYCLOAK_CLIENT_BASIC = getEnvironmentVariable("KEYCLOAK_CLIENT_BASIC");
+
+
     }
 
     private String getEnvironmentVariable(String key) throws ConfigurationException {
-        Optional<String> environmentVariable = Optional.of(System.getenv(key));
+        Optional<String> environmentVariable = Optional.ofNullable(System.getenv(key));
         return environmentVariable.orElseThrow(ConfigurationException::new);
     }
 }
