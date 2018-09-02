@@ -31,26 +31,31 @@ public class MxisdHandler extends AbstractVerticle {
         final String username = authRequestBody.getString("localpart");
 
         MultiMap form = helper.getUserForm(keycloakPassword, username);
-
+        logger.info("Processing access token request to" + config.KEYCLOAK_HOST);
         webClient.post(443, config.KEYCLOAK_HOST, config.KEYCLOAK_CLIENT_URI)
                 .putHeader("Authorization", config.KEYCLOAK_CLIENT_BASIC)
                 .putHeader("content-type", "application/x-www-form-urlencoded")
                 .ssl(true)
                 .sendForm(form, ar -> {
-                    logger.info("form : " + form.toString());
+                    logger.info(config.KEYCLOAK_HOST + "responded with status code " + ar.result().statusCode());
                     if (ar.succeeded()) {
                         if (ar.result().statusCode() == 200) {
                             JsonObject keycloakResponse = ar.result().bodyAsJsonObject();
                             UserInfoDigest userinfo = helper.extractTokentInfo(keycloakResponse
                                     .getString("access_token"));
+                            logger.info("response : " + helper.buildSynapseLoginJsonBody(userinfo)
+                                    .encodePrettily());
                             routingContext.response().setStatusCode(200);
                             routingContext.response().end(
                                     helper.buildSynapseLoginJsonBody(userinfo)
                                             .encodePrettily());
 
                         } else if (ar.result().statusCode() == 401) {
+                            logger.info(config.KEYCLOAK_HOST + " responded with status code " + ar.result().statusCode());
                             UserInfoDigest userInfoDigest = new UserInfoDigest(
                                     "", form.get("username"), false);
+                            logger.info("response : " + helper.buildSynapseLoginJsonBody(userInfoDigest)
+                                    .encodePrettily());
                             routingContext.response().setStatusCode(401);
                             routingContext.response().end(
                                     helper.buildSynapseLoginJsonBody(userInfoDigest)
