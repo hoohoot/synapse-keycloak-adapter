@@ -1,5 +1,9 @@
 image: docker:latest
 
+stages:
+  - build
+  - package
+
 maven-build:
   image: maven:3-jdk-8
   stage: build
@@ -8,9 +12,8 @@ maven-build:
     paths:
       - target/*.jar
   
-
 build-master:
-  stage: build
+  stage: package
   script:
     - docker build --pull -t "$CI_REGISTRY_IMAGE" .
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
