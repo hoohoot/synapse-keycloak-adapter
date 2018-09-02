@@ -8,15 +8,19 @@ login into matrix using keycloak as an identity provider.
 To run this adapter you need to have a running instance of matrix/synapse installed
 with the [rest-auth](https://github.com/kamax-io/matrix-synapse-rest-auth) plugin and a running keycloack server. 
 
-## Running the adapter
+## Running the adapter
 
-Edit the `/src/config.example.json` according to your setup. 
-Rename it `config.json`
+To run the project you need the following enironement variable to be set: 
+```SYNAPSE_HOST=matrix.example.org```
+```KEYCLOAK_HOST=keycloak.example.org```
+```KEYCLOAK_CLIENT_URI=/auth/realms/${your-realm}/protocol/openid-connect/token```
+```KEYCLOAK_CLIENT_BASIC=${base64(client-id:client-secret)}```
 
 To launch your tests:
 ```
 ./mvnw clean test
 ```
+Note that you will need to set your testing environement variable in the pom.xml properties.
 
 To package your application:
 ```
