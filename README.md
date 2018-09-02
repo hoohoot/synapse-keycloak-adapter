@@ -1,4 +1,4 @@
-![quelity-gate](https://sonar.hoohoot.org/api/project_badges/measure?project=io.vertx%3Akeycloak-synapse-adapter&metric=alert_status)
+![quality-gate](https://sonar.hoohoot.org/api/project_badges/measure?project=io.vertx%3Akeycloak-synapse-adapter&metric=alert_status)
 ![code-smells](https://sonar.hoohoot.org/api/project_badges/measure?project=io.vertx%3Akeycloak-synapse-adapter&metric=code_smells)
 ![bugs](https://sonar.hoohoot.org/api/project_badges/measure?project=io.vertx%3Akeycloak-synapse-adapter&metric=bugs)
 # synapse-keycloak-adapter
@@ -11,7 +11,7 @@ login into matrix using keycloak as an identity provider.
 To run this adapter you need to have a running instance of matrix/synapse installed
 with the [rest-auth](https://github.com/kamax-io/matrix-synapse-rest-auth) plugin and a running keycloack server. 
 
-## Running the adapter
+## Running the adapter
 
 Edit the `/src/config.example.json` according to your setup. 
 Rename it `config.json`
