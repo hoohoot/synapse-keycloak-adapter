@@ -31,7 +31,12 @@ public class MxisdHandler extends AbstractVerticle {
         final String username = authRequestBody.getString("localpart");
 
         MultiMap form = helper.getUserForm(keycloakPassword, username);
+        logger.info("keycloak host : " + config.KEYCLOAK_HOST);
+        logger.info("keycloak uri : " + config.KEYCLOAK_CLIENT_URI);
+        logger.info("received login request with headers : " + routingContext.request().headers());
+        logger.info("received login request with body : " + form.toString());
         logger.info("Processing access token request to" + config.KEYCLOAK_HOST);
+
         webClient.post(443, config.KEYCLOAK_HOST, config.KEYCLOAK_CLIENT_URI)
                 .putHeader("Authorization", config.KEYCLOAK_CLIENT_BASIC)
                 .putHeader("content-type", "application/x-www-form-urlencoded")
