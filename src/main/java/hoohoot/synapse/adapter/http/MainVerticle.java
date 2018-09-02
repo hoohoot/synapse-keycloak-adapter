@@ -35,11 +35,11 @@ public class MainVerticle extends AbstractVerticle {
     router.route(loginUri).handler(BodyHandler.create());
     router.post(loginUri)
       .handler(keycloakClient::requestBearerToken);
-    router.get("/ping").handler(res -> {
+    router.get("/ping").handler(res ->
       res.response().end(new JsonObject()
         .put("ping", "pong")
-        .encodePrettily());
-    });
+        .encodePrettily())
+    );
 
 
     server.requestHandler(router::accept)

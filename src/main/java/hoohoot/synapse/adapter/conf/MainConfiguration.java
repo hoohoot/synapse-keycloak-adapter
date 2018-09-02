@@ -5,7 +5,6 @@ import java.util.Optional;
 
 public class MainConfiguration {
 
-    public final String SYNAPSE_URL;
     public final String SYNAPSE_HOST;
 
     public final String KEYCLOAK_HOST;
@@ -17,7 +16,6 @@ public class MainConfiguration {
     public final Integer SERVER_PORT = 8080;
 
     public MainConfiguration() throws ConfigurationException {
-        SYNAPSE_URL = getEnvironmentVariable("SYNAPSE_URL");
         SYNAPSE_HOST = getEnvironmentVariable("SYNAPSE_HOST");
 
         KEYCLOAK_HOST = getEnvironmentVariable("KEYCLOAK_HOST");

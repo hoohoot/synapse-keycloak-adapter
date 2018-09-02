@@ -13,7 +13,6 @@ import io.vertx.ext.web.client.WebClient;
 
 import java.util.Base64;
 
-
 class KeycloakClient extends AbstractVerticle {
   private Logger logger = LoggerFactory.getLogger(KeycloakClient.class);
 
@@ -61,9 +60,13 @@ class KeycloakClient extends AbstractVerticle {
   }
 
   private String desynapsifyUsername(String username) {
-    username = username.replace(":" + config.SYNAPSE_HOST, "");
-    username = username.substring(1);
-    return username;
+    logger.info("Denaspsifiying username : " + username);
+
+    if (username.toCharArray()[0] == '@') {
+      username = username.substring(1);
+    }
+
+    return username.replace(":" + config.SYNAPSE_HOST, "");
   }
 
   /**
@@ -102,7 +105,7 @@ class KeycloakClient extends AbstractVerticle {
     JsonObject auth = new JsonObject();
 
     auth.put("success", userInfoDigest.isMatrixUser());
-    auth.put("mxid", "@" + userInfoDigest.getPreferedUserName() + ":" + config.SYNAPSE_URL);
+    auth.put("mxid", "@" + userInfoDigest.getPreferedUserName() + ":" + config.SYNAPSE_HOST);
 
     JsonObject profile = new JsonObject();
     profile.put("display_name", userInfoDigest.getPreferedUserName());
