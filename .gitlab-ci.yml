@@ -1,7 +1,7 @@
 image: docker:latest
 
 services:
-  - docker:dind
+- docker:dind
 
 stages:
   - build
@@ -19,7 +19,9 @@ build-master:
   stage: package
   script:
     - docker build --pull -t "$CI_REGISTRY_IMAGE" .
+    - docker images
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" $CI_REGISTRY
     - docker push "$CI_REGISTRY_IMAGE"
+    - docker logout
   only:
     - master
