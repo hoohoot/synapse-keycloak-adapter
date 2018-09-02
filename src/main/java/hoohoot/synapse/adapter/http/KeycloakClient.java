@@ -1,56 +1,42 @@
 package hoohoot.synapse.adapter.http;
 
+import hoohoot.synapse.adapter.conf.MainConfiguration;
 import hoohoot.synapse.adapter.models.UserInfoDigest;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.MultiMap;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.WebClient;
 
 import java.util.Base64;
 
-
 class KeycloakClient extends AbstractVerticle {
+  private Logger logger = LoggerFactory.getLogger(KeycloakClient.class);
 
-  private final String synapseUrl;
   private WebClient webClient;
-  private JsonObject config;
-  private final JsonObject keycloakConfig;
-  private final String keycloakHost;
+  private MainConfiguration config;
 
-  protected KeycloakClient(WebClient webClient, JsonObject config) {
+  protected KeycloakClient(WebClient webClient, MainConfiguration config) {
     this.webClient = webClient;
     this.config = config;
-    this.synapseUrl = config.getString("synapse.host");
-    this.keycloakConfig = config.getJsonObject("keycloak");
-    this.keycloakHost = keycloakConfig.getString("host");
-
   }
 
-  public void requestBearerToken(RoutingContext routingContext) {
-
-    final String keycloakClientUri = keycloakConfig.getString("client.uri");
-    final String keycloakBasicAuth = keycloakConfig.getString("client.basic");
-
-    final String synapseHost = config.getString("synapse.host");
+  void requestBearerToken(RoutingContext routingContext) {
 
     JsonObject userInfo = routingContext.getBodyAsJson().getJsonObject("user");
-    String username = userInfo.getString("id");
 
     final String keycloakPassword = userInfo.getString("password");
-    username = username.replace(":" + synapseHost, "");
-    username = username.substring(1);
 
-    final String keycloakUsername = username;
+    String username = userInfo.getString("id");
+    final String keycloakUsername = desynapsifyUsername(username);
 
-    MultiMap form = MultiMap.caseInsensitiveMultiMap();
-    form.add("username", keycloakUsername);
-    form.add("password", keycloakPassword);
-    form.add("grant_type", "password");
+    MultiMap form = getUserForm(keycloakPassword, keycloakUsername);
 
-    webClient.post(443, keycloakHost, keycloakClientUri)
-      .putHeader("Authorization", keycloakBasicAuth)
+    webClient.post(443, config.KEYCLOAK_HOST, config.KEYCLOAK_CLIENT_URI)
+      .putHeader("Authorization", config.KEYCLOAK_CLIENT_BASIC)
       .putHeader("content-type", "application/x-www-form-urlencoded")
       .ssl(true)
       .sendForm(form, ar -> {
@@ -67,10 +53,20 @@ class KeycloakClient extends AbstractVerticle {
           }
           ar.succeeded();
         } else {
-          System.out.println("nope");
+          logger.warn("Couldn't get response from keycloak");
           routingContext.response().end("error");
         }
       });
+  }
+
+  private String desynapsifyUsername(String username) {
+    logger.info("Denaspsifiying username : " + username);
+
+    if (username.toCharArray()[0] == '@') {
+      username = username.substring(1);
+    }
+
+    return username.replace(":" + config.SYNAPSE_HOST, "");
   }
 
   /**
@@ -79,7 +75,7 @@ class KeycloakClient extends AbstractVerticle {
    * @param bearer the access token delivered by KC
    * @return UserInfoDigest
    */
-  public UserInfoDigest extractTokentInfo(String bearer) {
+  private UserInfoDigest extractTokentInfo(String bearer) {
     String[] splittedJWT = bearer.split("\\.");
     byte[] decodedBytes = Base64.getDecoder().decode(splittedJWT[1]);
     String decodedPayload = new String(decodedBytes);
@@ -104,12 +100,12 @@ class KeycloakClient extends AbstractVerticle {
    * @param userInfoDigest UserInfoDigest
    * @return JsonObject containing synapse login request
    */
-  public JsonObject buildSynapseLoginJsonBody(UserInfoDigest userInfoDigest) {
+  private JsonObject buildSynapseLoginJsonBody(UserInfoDigest userInfoDigest) {
 
     JsonObject auth = new JsonObject();
 
     auth.put("success", userInfoDigest.isMatrixUser());
-    auth.put("mxid", "@" + userInfoDigest.getPreferedUserName() + ":" + this.synapseUrl);
+    auth.put("mxid", "@" + userInfoDigest.getPreferedUserName() + ":" + config.SYNAPSE_HOST);
 
     JsonObject profile = new JsonObject();
     profile.put("display_name", userInfoDigest.getPreferedUserName());
@@ -125,5 +121,15 @@ class KeycloakClient extends AbstractVerticle {
     profile.put("three_pids", treePids);
     auth.put("profile", profile);
     return new JsonObject().put("auth", auth);
+  }
+
+  private MultiMap getUserForm(String keycloakPassword, String keycloakUsername) {
+    MultiMap form = MultiMap.caseInsensitiveMultiMap();
+
+    form.add("username", keycloakUsername);
+    form.add("password", keycloakPassword);
+    form.add("grant_type", "password");
+
+    return form;
   }
 }

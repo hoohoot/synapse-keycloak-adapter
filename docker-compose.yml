@@ -1,0 +1,45 @@
+version: '2'
+
+services:
+  synapse:
+    build: .
+    restart: unless-stopped
+    environment:
+    - SYNAPSE_SERVER_NAME=chat.example.tld
+    - SYNAPSE_REPORT_STATS=no
+    - SYNAPSE_ENABLE_REGISTRATION=no
+    - SYNAPSE_LOG_LEVEL=INFO
+    - POSTGRES_PASSWORD=examplepassword
+    - SYNAPSE_NO_TLS=yes
+    - SYNAPSE_CONFIG_PATH=/data/server_config
+    volumes:
+    - /data/matrix/synapse_data:/data
+    depends_on:
+    - db
+    ports:
+    - 8008:8008/tcp
+
+  db:
+    image: postgres:10-alpine
+    environment:
+    - POSTGRES_USER=synapse
+    - POSTGRES_PASSWORD=examplepassword
+    volumes:
+    - /data/matrix/postgres_data:/var/lib/postgresql/data
+
+  mxisd:
+    image: kamax/mxisd
+    environment:
+      - MATRIX_DOMAIN=chat.example.tld
+    volumes:
+      - /data/matrix/mxisd/var:/var/mxisd
+    ports:
+      - 8090:8090
+
+  keycloak-adapter:
+    build: ./synapse-keycloak-adapter
+    environment:
+    - SYNAPSE_HOST="chat.example.tld"
+    - KEYCLOAK_CLIENT_URI="/auth/realms/testing/protocol/openid-connect/token"
+    - KEYCLOAK_CLIENT_BASIC="Basic jgdjflklkjglfkjglkfjglkjfglkgf="
+    - KEYCLOAK_HOST="auth.example.tld"
