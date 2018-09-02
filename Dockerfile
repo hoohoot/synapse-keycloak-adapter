@@ -1,7 +1,7 @@
 # Extend vert.x image
 FROM vertx/vertx3
 
-ENV VERTICLE_NAME hoohoot.synapse.adapter.http.MainVerticle
+ENV VERTICLE_NAME hoohoot.synapse.adapter.http.server.MainVerticle
 ENV VERTICLE_FILE target/keycloak-synapse-adapter-1.0.0-SNAPSHOT.jar
 
 # Set the location of the verticles
