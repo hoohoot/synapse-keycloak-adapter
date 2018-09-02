@@ -11,10 +11,12 @@ with the [rest-auth](https://github.com/kamax-io/matrix-synapse-rest-auth) plugi
 ## Running the adapter
 
 To run the project you need the following enironement variable to be set: 
-```SYNAPSE_HOST=matrix.example.org```
-```KEYCLOAK_HOST=keycloak.example.org```
-```KEYCLOAK_CLIENT_URI=/auth/realms/${your-realm}/protocol/openid-connect/token```
-```KEYCLOAK_CLIENT_BASIC=${base64(client-id:client-secret)}```
+```
+SYNAPSE_HOST=matrix.example.org
+KEYCLOAK_HOST=keycloak.example.org
+KEYCLOAK_CLIENT_URI=/auth/realms/${your-realm}/protocol/openid-connect/token```
+KEYCLOAK_CLIENT_BASIC=${base64(client-id:client-secret)}
+```
 
 To launch your tests:
 ```
