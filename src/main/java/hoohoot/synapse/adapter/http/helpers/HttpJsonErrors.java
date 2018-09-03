@@ -1,4 +1,4 @@
-package hoohoot.synapse.adapter.http;
+package hoohoot.synapse.adapter.http.helpers;
 
 import io.vertx.core.json.JsonObject;
 

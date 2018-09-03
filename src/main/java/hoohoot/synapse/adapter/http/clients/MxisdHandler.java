@@ -1,7 +1,7 @@
 package hoohoot.synapse.adapter.http.clients;
 
 import hoohoot.synapse.adapter.conf.MainConfiguration;
-import hoohoot.synapse.adapter.http.HttpJsonErrors;
+import hoohoot.synapse.adapter.http.helpers.HttpJsonErrors;
 import hoohoot.synapse.adapter.models.UserInfoDigest;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.MultiMap;
