@@ -22,11 +22,6 @@
     <junit-platform-launcher.version>1.2.0</junit-platform-launcher.version>
 
     <main.verticle>hoohoot.synapse.adapter.http.server.MainVerticle</main.verticle>
-
-    <realm>testing</realm>
-    <keycloak-host>keycloak.example.org</keycloak-host>
-    <keycloak-client-basic>base64(client-id:client-secret)</keycloak-client-basic>
-    <synapse-host>marix.example.org</synapse-host>
   </properties>
 
   <dependencyManagement>

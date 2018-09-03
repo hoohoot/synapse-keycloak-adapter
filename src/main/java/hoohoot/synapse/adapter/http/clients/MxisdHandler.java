@@ -5,11 +5,16 @@ import hoohoot.synapse.adapter.http.HttpJsonErrors;
 import hoohoot.synapse.adapter.models.UserInfoDigest;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.MultiMap;
+import io.vertx.core.buffer.Buffer;
+import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
+import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
+
+import java.lang.management.BufferPoolMXBean;
 
 public class MxisdHandler extends AbstractVerticle {
     private final JsonHelper helper;
@@ -17,11 +22,19 @@ public class MxisdHandler extends AbstractVerticle {
 
     private WebClient webClient;
     private MainConfiguration config;
+    private final String loginUri;
+    private final String searchUri;
+    private final String searchBySinglePIDUri;
+    private final String bulkPIDSearchUri;
 
     public MxisdHandler(WebClient webClient, MainConfiguration config, JsonHelper helper) {
         this.helper = helper;
         this.webClient = webClient;
         this.config = config;
+        this.loginUri = "/auth/realms/testing/protocol/openid-connect/token";
+        this.searchUri = "";
+        this.searchBySinglePIDUri = "";
+        this.bulkPIDSearchUri = "";
     }
 
     public void loginHandler(RoutingContext routingContext) {
@@ -37,14 +50,14 @@ public class MxisdHandler extends AbstractVerticle {
         logger.info("received login request with body : " + form.toString());
         logger.info("Processing access token request to" + config.KEYCLOAK_HOST);
 
-        webClient.post(443, config.KEYCLOAK_HOST, config.KEYCLOAK_CLIENT_URI)
-                .putHeader("Authorization", config.KEYCLOAK_CLIENT_BASIC)
-                .putHeader("content-type", "application/x-www-form-urlencoded")
-                .ssl(true)
+        HttpRequest<Buffer> request = generateAccessTokenRequest(loginUri);
+
+        request
                 .sendForm(form, ar -> {
                     if (ar.succeeded()) {
                         logger.info(config.KEYCLOAK_HOST + "responded with status code " + ar.result().statusCode());
                         if (ar.result().statusCode() == 200) {
+                            logger.info("pouet");
                             JsonObject keycloakResponse = ar.result().bodyAsJsonObject();
                             UserInfoDigest userinfo = helper.extractTokentInfo(keycloakResponse
                                     .getString("access_token"));
@@ -90,5 +103,14 @@ public class MxisdHandler extends AbstractVerticle {
 
     public static void healthCheckHandler(RoutingContext routingContext) {
 
+    }
+
+    private HttpRequest<Buffer> generateAccessTokenRequest(String uri) {
+        HttpRequest<Buffer> request = this.webClient.post(443, config.KEYCLOAK_HOST, uri);
+        request.headers().add("Authorization", config.KEYCLOAK_CLIENT_BASIC);
+        request.headers().add("content-type", "application/x-www-form-urlencoded");
+        request.ssl(true);
+        request.method(HttpMethod.POST);
+        return request;
     }
 }
