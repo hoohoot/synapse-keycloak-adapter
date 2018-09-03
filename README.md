@@ -10,6 +10,8 @@ login into Matrix using Keycloak as an identity provider.
 
 ## Disclaimer
 
+WORK IN PROGRESS : THIS IS STILL NOT COMPLETELY FUNCTIONAL
+
 We cannot guaranty this is 100% secure, we are still learning and doing this for fun.
 Enjoy!  
 
