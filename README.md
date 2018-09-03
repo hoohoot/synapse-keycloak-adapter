@@ -1,6 +1,5 @@
-Gitlab CI Status : [![pipeline status](https://framagit.org/hoohoot/synapse-keycloak-adapter/badges/master/pipeline.svg)](https://framagit.org/hoohoot/synapse-keycloak-adapter/commits/master)
 
-Sonar Status : ![quality-gate](https://sonar.hoohoot.org/api/project_badges/measure?project=io.vertx%3Akeycloak-synapse-adapter&metric=alert_status)
+![quality-gate](https://sonar.hoohoot.org/api/project_badges/measure?project=io.vertx%3Akeycloak-synapse-adapter&metric=alert_status)
 ![code-smells](https://sonar.hoohoot.org/api/project_badges/measure?project=io.vertx%3Akeycloak-synapse-adapter&metric=code_smells)
 ![bugs](https://sonar.hoohoot.org/api/project_badges/measure?project=io.vertx%3Akeycloak-synapse-adapter&metric=bugs)
 

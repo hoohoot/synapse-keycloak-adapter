@@ -1,0 +1,17 @@
+{
+  "default_hs_url": "https://chat.example.org",
+  "default_is_url": "https://chat.example.org",
+  "disable_custom_urls": true,
+  "disable_guests": true,
+  "brand": "Riot",
+  "integrations_ui_url": "https://scalar.vector.im/",
+  "integrations_rest_url": "https://scalar.vector.im/api",
+  "bug_report_endpoint_url": "https://riot.im/bugreports/submit",
+  "enableLabs": true,
+  "roomDirectory": {
+    "servers": [
+      "matrix.org"
+    ]
+  },
+  "welcomeUserId": "@signal:localhost:8008"
+}
