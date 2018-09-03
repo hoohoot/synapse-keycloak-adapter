@@ -1,0 +1,13 @@
+[
+  {
+    "operation": "shift",
+    "spec": {
+      "results": {
+        "*": {
+          "@(username)": "[0].results.[&1].display_name",
+          "@(id)": "[0].results.[&1].user_id"
+        }
+      }
+    }
+  }
+]

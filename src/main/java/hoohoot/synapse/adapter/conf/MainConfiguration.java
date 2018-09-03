@@ -15,8 +15,8 @@ public class MainConfiguration {
     public final String KEYCLOAK_HOST;
     public final String REALM;
     public final String KEYCLOAK_CLIENT_BASIC;
-    private final String KEYCLOAK_SEARCH_USERNAME;
-    private final String KEYCLOAK_SEARCH_PASSWORD;
+    public final String KEYCLOAK_SEARCH_USERNAME;
+    public final String KEYCLOAK_SEARCH_PASSWORD;
 
     public final String USER_AGENT = "synapse-adapter";
     public final Boolean SSL_ACTIVE = true;

@@ -2,11 +2,13 @@ package hoohoot.synapse.adapter.http.clients;
 
 import hoohoot.synapse.adapter.conf.MainConfiguration;
 import hoohoot.synapse.adapter.http.helpers.HttpJsonErrors;
+import hoohoot.synapse.adapter.http.helpers.JoltMapper;
 import hoohoot.synapse.adapter.models.UserInfoDigest;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -29,6 +31,7 @@ public class MxisdHandler extends AbstractVerticle {
         this.helper = helper;
         this.webClient = webClient;
         this.config = config;
+
         this.loginUri = "/auth/realms/" + config.REALM + "/protocol/openid-connect/token";
         this.searchUri = "/auth/admin/realms/" + config.REALM + "/users";
         this.searchBySinglePIDUri = "";
@@ -78,15 +81,73 @@ public class MxisdHandler extends AbstractVerticle {
                         }
                         ar.succeeded();
                     } else {
-                        logger.warn("Couldn't get response from keycloak");
-                        routingContext.response().setStatusCode(502);
-                        routingContext.response().end(HttpJsonErrors.BADGATEWAY.encodePrettily());
+                        respondWithStatusCode502(routingContext);
                     }
                 });
     }
 
-    public void searchHandler(RoutingContext routingContext) {
+    public void getSearchAccessToken(RoutingContext routingContext) {
+        HttpRequest<Buffer> request = generateAccessTokenRequest(loginUri);
+        MultiMap form = helper.getUserForm(config.KEYCLOAK_SEARCH_PASSWORD, config.KEYCLOAK_SEARCH_USERNAME);
+        logger.info(form);
 
+        request.sendForm(form, ar -> {
+            if (ar.succeeded()) {
+                logger.info(ar.result().statusCode());
+                if (ar.result().statusCode() == 200) {
+                    routingContext.put("access_token", ar.result().bodyAsJsonObject().getString("access_token"));
+                    routingContext.next();
+                } else {
+                    logger.error("Couldn't get access token for search user");
+                    logger.info(routingContext.response().getStatusCode());
+                    routingContext.response().end("placeholder");
+                }
+            } else {
+                respondWithStatusCode502(routingContext);
+            }
+        });
+    }
+
+    public void searchHandler(RoutingContext routingContext) {
+        String searchTerm = routingContext.getBodyAsJson().getString("search_term");
+        String accessToken = routingContext.get("access_token");
+
+        HttpRequest<Buffer> request = generateSearchRequest(searchTerm, searchUri, accessToken);
+        request.send(ar -> {
+            if (ar.succeeded()) {
+                logger.info(ar.result().statusCode());
+                if (ar.result().statusCode() == 200) {
+
+                    JsonObject searchResult = new JsonObject()
+                            .put("results", ar.result().bodyAsJsonArray());
+
+                    JsonArray synapsifiedSearchResponse = JoltMapper
+                            .transform(searchResult, "search-spec.json");
+
+                    final JsonArray results = synapsifiedSearchResponse
+                            .getJsonObject(0)
+                            .getJsonArray("results");
+
+                    JsonObject finalResponse = new JsonObject()
+                            .put("limited", false)
+                            .put("results", results);
+                    logger.info(synapsifiedSearchResponse.encodePrettily());
+
+                    routingContext.response().setStatusCode(200);
+                    routingContext.response().end(finalResponse.encodePrettily());
+                } else {
+                    // TODO
+                }
+            } else {
+                respondWithStatusCode502(routingContext);
+            }
+        });
+    }
+
+    private void respondWithStatusCode502(RoutingContext routingContext) {
+        logger.warn("Couldn't get response from keycloak");
+        routingContext.response().setStatusCode(502);
+        routingContext.response().end(HttpJsonErrors.BADGATEWAY.encodePrettily());
     }
 
     public void singlePIDQueryHandler(RoutingContext routingContext) {
@@ -108,6 +169,15 @@ public class MxisdHandler extends AbstractVerticle {
         request.headers().add("content-type", "application/x-www-form-urlencoded");
         request.ssl(true);
         request.method(HttpMethod.POST);
+        return request;
+    }
+
+    private HttpRequest<Buffer> generateSearchRequest(String searchTerm, String uri, String accessToken) {
+        HttpRequest<Buffer> request = this.webClient.get(443, config.KEYCLOAK_HOST, uri);
+        request.headers().add("Authorization", "Bearer " + accessToken);
+        request.addQueryParam("search", searchTerm);
+        request.method(HttpMethod.GET);
+
         return request;
     }
 }

@@ -42,6 +42,7 @@ public class MainVerticle extends AbstractVerticle {
 
         router.route("/*").handler(BodyHandler.create());
         router.post(loginUri).handler(mxisdHandler::loginHandler);
+        router.post(userSearchUri).handler(mxisdHandler::getSearchAccessToken);
         router.post(userSearchUri).handler(mxisdHandler::searchHandler);
         router.post(singlePIDQueryHandler).handler(mxisdHandler::singlePIDQueryHandler);
         router.post(bulkPIDQueryHandler).handler(mxisdHandler::bulkPIDQueryHandler);
