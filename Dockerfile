@@ -1,4 +1,4 @@
-FROM openjdk:8-jre-alpine                                           (1)
+FROM openjdk:8-jre-alpine
 
 ENV VERTICLE_NAME hoohoot.synapse.adapter.http.server.MainVerticle
 ENV VERTICLE_FILE target/keycloak-synapse-adapter-1.0.0-fat.jar
