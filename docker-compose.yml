@@ -44,11 +44,12 @@ services:
     ports:
     - 8480:8080
     environment:
-    - SYNAPSE_URL="chat.example.org"
-    - SYNAPSE_HOST="chat.example.org"
-    - KEYCLOAK_CLIENT_URI="/auth/realms/example-realm/protocol/openid-connect/token"
-    - KEYCLOAK_CLIENT_BASIC="Basic c3luYXBzZS1hZGFwdGVyOjVmYTQ0NzE0LWU2YjItNDc5Mi04NWQwLTg1M2VmMDNjNDk1MQ=="
     - KEYCLOAK_HOST="auth.example.org"
+    - SYNAPSE_HOST="auth.example.org";
+    - REALM=testing;
+    - KEYCLOAK_CLIENT_BASIC=Basic base64(client-id:client-secret)=;
+    - KEYCLOAK_SEARCH_USERNAME=username;
+    - KEYCLOAK_SEARCH_PASSWORD=password
 
   riot:
     build: ./riot
@@ -63,4 +64,3 @@ volumes:
   synapse:
   postgres:
   mxisd:
-

@@ -14,8 +14,6 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
 
-import java.lang.management.BufferPoolMXBean;
-
 public class MxisdHandler extends AbstractVerticle {
     private final JsonHelper helper;
     private Logger logger = LoggerFactory.getLogger(MxisdHandler.class);
@@ -31,8 +29,8 @@ public class MxisdHandler extends AbstractVerticle {
         this.helper = helper;
         this.webClient = webClient;
         this.config = config;
-        this.loginUri = "/auth/realms/testing/protocol/openid-connect/token";
-        this.searchUri = "";
+        this.loginUri = "/auth/realms/" + config.REALM + "/protocol/openid-connect/token";
+        this.searchUri = "/auth/admin/realms/" + config.REALM + "/users";
         this.searchBySinglePIDUri = "";
         this.bulkPIDSearchUri = "";
     }
@@ -45,9 +43,8 @@ public class MxisdHandler extends AbstractVerticle {
 
         MultiMap form = helper.getUserForm(keycloakPassword, username);
         logger.info("keycloak host : " + config.KEYCLOAK_HOST);
-        logger.info("keycloak uri : " + config.KEYCLOAK_CLIENT_URI);
+        logger.info("keycloak uri : " + config.REALM);
         logger.info("received login request with headers : " + routingContext.request().headers());
-        logger.info("received login request with body : " + form.toString());
         logger.info("Processing access token request to" + config.KEYCLOAK_HOST);
 
         HttpRequest<Buffer> request = generateAccessTokenRequest(loginUri);
