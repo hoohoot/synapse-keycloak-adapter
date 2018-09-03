@@ -1,21 +1,23 @@
-version: '2'
+version: '2.1'
 
 services:
   synapse:
-    build: .
+    build: ./synapse
     restart: unless-stopped
     environment:
-    - SYNAPSE_SERVER_NAME=chat.example.tld
+    - SYNAPSE_SERVER_NAME=chat.hoohoot.org
     - SYNAPSE_REPORT_STATS=no
     - SYNAPSE_ENABLE_REGISTRATION=no
     - SYNAPSE_LOG_LEVEL=INFO
-    - POSTGRES_PASSWORD=examplepassword
+    - POSTGRES_PASSWORD=XXgp3Cp61J4xwT1H
     - SYNAPSE_NO_TLS=yes
     - SYNAPSE_CONFIG_PATH=/data/server_config
     volumes:
-    - /data/matrix/synapse_data:/data
+    - synapse:/data
+    - ./synapse/server_config:/data/server_config
     depends_on:
-    - db
+      db:
+        condition: service_healthy
     ports:
     - 8008:8008/tcp
 
@@ -23,23 +25,42 @@ services:
     image: postgres:10-alpine
     environment:
     - POSTGRES_USER=synapse
-    - POSTGRES_PASSWORD=examplepassword
+    - POSTGRES_PASSWORD=XXgp3Cp61J4xwT1H
     volumes:
-    - /data/matrix/postgres_data:/var/lib/postgresql/data
+    - postgres:/var/lib/postgresql/data
 
   mxisd:
     image: kamax/mxisd
-    environment:
-      - MATRIX_DOMAIN=chat.example.tld
+    restart: unless-stopped
     volumes:
-      - /data/matrix/mxisd/var:/var/mxisd
+    - mxisd:/var/mxisd
+    - ./mxisd/mxisd.yaml:/etc/mxisd/mxisd.yaml
     ports:
-      - 8090:8090
+    - 8090:8090
 
   keycloak-adapter:
-    build: ./synapse-keycloak-adapter
+    image: hoohoot/synapse-keycloak-adapter:latest
+    restart: unless-stopped
+    ports:
+    - 8480:8080
     environment:
-    - SYNAPSE_HOST="chat.example.tld"
-    - KEYCLOAK_CLIENT_URI="/auth/realms/testing/protocol/openid-connect/token"
-    - KEYCLOAK_CLIENT_BASIC="Basic jgdjflklkjglfkjglkfjglkjfglkgf="
-    - KEYCLOAK_HOST="auth.example.tld"
+    - SYNAPSE_URL="chat.example.org"
+    - SYNAPSE_HOST="chat.example.org"
+    - KEYCLOAK_CLIENT_URI="/auth/realms/example-realm/protocol/openid-connect/token"
+    - KEYCLOAK_CLIENT_BASIC="Basic c3luYXBzZS1hZGFwdGVyOjVmYTQ0NzE0LWU2YjItNDc5Mi04NWQwLTg1M2VmMDNjNDk1MQ=="
+    - KEYCLOAK_HOST="auth.example.org"
+
+  riot:
+    build: ./riot
+    restart: unless-stopped
+    ports:
+    - 8009:8009
+    depends_on:
+      synapse:
+        condition: service_started
+
+volumes:
+  synapse:
+  postgres:
+  mxisd:
+
