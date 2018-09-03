@@ -1,7 +1,7 @@
-FROM vertx/vertx3
+FROM openjdk:8-jre-alpine                                           (1)
 
 ENV VERTICLE_NAME hoohoot.synapse.adapter.http.server.MainVerticle
-ENV VERTICLE_FILE target/keycloak-synapse-adapter-1.0.0.jar
+ENV VERTICLE_FILE target/keycloak-synapse-adapter-1.0.0-fat.jar
 ENV VERTICLE_HOME /usr/verticles
 
 EXPOSE 8080
