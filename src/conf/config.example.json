@@ -1,9 +1,0 @@
-{
-  "http.port": 8080,
-  "synapse.host": "${synapse.hostname}",
-  "keycloak": {
-    "host": "${keycloak.hostname}",
-    "client.uri": "/auth/realms/${realm}/protocol/openid-connect/token",
-    "client.basic": "Basic base64(${keocloak-clientID}:${keycloak-client-secret}"
-  }
-}

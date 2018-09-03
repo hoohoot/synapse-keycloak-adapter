@@ -22,11 +22,6 @@
     <junit-platform-launcher.version>1.2.0</junit-platform-launcher.version>
 
     <main.verticle>hoohoot.synapse.adapter.http.server.MainVerticle</main.verticle>
-
-    <realm>testing</realm>
-    <keycloak-host>keycloak.example.org</keycloak-host>
-    <keycloak-client-basic>base64(client-id:client-secret)</keycloak-client-basic>
-    <synapse-host>marix.example.org</synapse-host>
   </properties>
 
   <dependencyManagement>
@@ -124,12 +119,6 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <version>${maven-surefire-plugin.version}</version>
         <configuration>
-          <systemPropertyVariables>
-            <KEYCLOAK_HOST>${keycloak-host}</KEYCLOAK_HOST>
-            <KEYCLOAK_CLIENT_URI>/auth/realms/${realm}/protocol/openid-connect/token</KEYCLOAK_CLIENT_URI>
-            <KEYCLOAK_CLIENT_BASIC>${keycloak-client-basic}</KEYCLOAK_CLIENT_BASIC>
-            <SYNAPSE_HOST>${synapse-host}</SYNAPSE_HOST>
-          </systemPropertyVariables>
         </configuration>
         <dependencies>
           <dependency>
