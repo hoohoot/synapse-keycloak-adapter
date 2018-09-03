@@ -1,11 +1,14 @@
 package hoohoot.synapse.adapter.conf;
 
 import hoohoot.synapse.adapter.http.exceptions.ConfigurationException;
-import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 
 import java.util.Optional;
 
 public class MainConfiguration {
+
+    private Logger logger = LoggerFactory.getLogger(MainConfiguration.class);
 
     public final String SYNAPSE_HOST;
 
@@ -18,17 +21,23 @@ public class MainConfiguration {
     public final Integer SERVER_PORT = 8080;
 
     public MainConfiguration() throws ConfigurationException {
-            SYNAPSE_HOST = getEnvironmentVariable("SYNAPSE_HOST");
+        logger.info("=== SETTING UP CONFIGURATION VARIABLES ===");
 
-            KEYCLOAK_HOST = getEnvironmentVariable("KEYCLOAK_HOST");
-            KEYCLOAK_CLIENT_URI = getEnvironmentVariable("KEYCLOAK_CLIENT_URI");
-            KEYCLOAK_CLIENT_BASIC = getEnvironmentVariable("KEYCLOAK_CLIENT_BASIC");
+        SYNAPSE_HOST = getEnvironmentVariable("SYNAPSE_HOST");
+        logger.info("SYNAPSE HOST: " + SYNAPSE_HOST);
 
+        KEYCLOAK_HOST = getEnvironmentVariable("KEYCLOAK_HOST");
+        logger.info("KEYCLOAK HOST: " + KEYCLOAK_HOST);
 
+        KEYCLOAK_CLIENT_URI = getEnvironmentVariable("KEYCLOAK_CLIENT_URI");
+        logger.info("KEYCLOAK CLIENT URI: " + KEYCLOAK_CLIENT_URI);
+
+        KEYCLOAK_CLIENT_BASIC = getEnvironmentVariable("KEYCLOAK_CLIENT_BASIC");
+        logger.info("KEYCLOAK_CLIENT_BASIC: " + KEYCLOAK_CLIENT_BASIC);
     }
 
     private String getEnvironmentVariable(String key) throws ConfigurationException {
         Optional<String> environmentVariable = Optional.ofNullable(System.getenv(key));
-        return environmentVariable.orElseThrow(ConfigurationException::new);
+        return environmentVariable.orElseThrow(ConfigurationException::new).replace("\"", "");
     }
 }
