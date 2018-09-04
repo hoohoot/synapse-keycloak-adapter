@@ -8,6 +8,7 @@ import java.util.Optional;
 
 public class MainConfiguration {
 
+
     private Logger logger = LoggerFactory.getLogger(MainConfiguration.class);
 
     public final String SYNAPSE_HOST;
@@ -42,6 +43,7 @@ public class MainConfiguration {
 
         KEYCLOAK_CLIENT_BASIC = getEnvironmentVariable("KEYCLOAK_CLIENT_BASIC");
         logger.info("KEYCLOAK_CLIENT_BASIC: " + KEYCLOAK_CLIENT_BASIC);
+
     }
 
     private String getEnvironmentVariable(String key) throws ConfigurationException {

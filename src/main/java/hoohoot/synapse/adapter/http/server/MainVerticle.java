@@ -11,6 +11,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.handler.BodyHandler;
@@ -22,20 +23,20 @@ public class MainVerticle extends AbstractVerticle {
     @Override
     public void start(Future<Void> startFuture) throws ConfigurationException  {
 
+        MainConfiguration config = new MainConfiguration();
+
         final String loginUri = "/_mxisd/backend/api/v1/auth/login";
         final String userSearchUri = "/_mxisd/backend/api/v1/directory/user/search";
         final String singlePIDQueryHandler = "/_mxisd/backend/api/v1/identity/single";
         final String bulkPIDQueryHandler = "/_mxisd/backend/api/v1/identity/bulk";
 
-        MainConfiguration conf = new MainConfiguration();
-
-        final JsonHelper helper = new JsonHelper(conf);
+        final JsonHelper helper = new JsonHelper(config);
 
         WebClient webClient = WebClient.create(vertx, new WebClientOptions()
-                .setSsl(conf.SSL_ACTIVE)
-                .setUserAgent(conf.USER_AGENT));
+                .setSsl(config.SSL_ACTIVE)
+                .setUserAgent(config.USER_AGENT));
 
-        MxisdHandler mxisdHandler = new MxisdHandler(webClient, conf, helper);
+        MxisdHandler mxisdHandler = new MxisdHandler(webClient, config, helper);
 
         HttpServer server = vertx.createHttpServer();
         Router router = Router.router(vertx);
@@ -43,9 +44,21 @@ public class MainVerticle extends AbstractVerticle {
         router.route("/*").handler(BodyHandler.create());
         router.post(loginUri).handler(mxisdHandler::loginHandler);
         router.post(userSearchUri).handler(mxisdHandler::getSearchAccessToken);
-        router.post(userSearchUri).handler(mxisdHandler::searchHandler);
-        router.post(singlePIDQueryHandler).handler(mxisdHandler::singlePIDQueryHandler);
-        router.post(bulkPIDQueryHandler).handler(mxisdHandler::bulkPIDQueryHandler);
+        router.post(userSearchUri).handler( routingContext -> {
+                mxisdHandler.searchHandler(routingContext,
+                        "search-spec.json");
+        });
+
+        router.post(singlePIDQueryHandler).handler(routingContext -> {
+                mxisdHandler.searchHandler(routingContext,
+                        "pid-search-spec.json");
+        });
+
+        router.post(bulkPIDQueryHandler).handler(routingContext -> {
+                mxisdHandler.searchHandler(routingContext,
+                        "bulk-search-spec.json");
+
+        });
 
         router.get("/ping").handler(res -> res.response().end(new JsonObject()
                 .put("ping", "pong")
@@ -55,12 +68,12 @@ public class MainVerticle extends AbstractVerticle {
 
 
         server.requestHandler(router::accept)
-                .listen(conf.SERVER_PORT, http -> {
+                .listen(config.SERVER_PORT, http -> {
                     if (http.succeeded()) {
                         startFuture.complete();
-                        logger.info("HTTP server started on http://localhost:{}", conf.SERVER_PORT);
+                        logger.info("HTTP server started on http://localhost:{}", config.SERVER_PORT);
                     } else {
-                        logger.info("HTTP server failed to start on http://localhost:{}", conf.SERVER_PORT);
+                        logger.info("HTTP server failed to start on http://localhost:{}", config.SERVER_PORT);
                         startFuture.fail(http.cause());
                     }
                 });
