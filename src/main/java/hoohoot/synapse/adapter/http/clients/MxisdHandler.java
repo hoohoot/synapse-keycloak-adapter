@@ -1,6 +1,7 @@
 package hoohoot.synapse.adapter.http.clients;
 
 import hoohoot.synapse.adapter.conf.MainConfiguration;
+import hoohoot.synapse.adapter.http.exceptions.ConfigurationException;
 import hoohoot.synapse.adapter.http.helpers.HttpJsonErrors;
 import hoohoot.synapse.adapter.http.helpers.JoltMapper;
 import hoohoot.synapse.adapter.models.UserInfoDigest;
@@ -23,9 +24,6 @@ public class MxisdHandler extends AbstractVerticle {
     private WebClient webClient;
     private MainConfiguration config;
     private final String loginUri;
-    private final String searchUri;
-    private final String searchBySinglePIDUri;
-    private final String bulkPIDSearchUri;
 
     public MxisdHandler(WebClient webClient, MainConfiguration config, JsonHelper helper) {
         this.helper = helper;
@@ -33,9 +31,7 @@ public class MxisdHandler extends AbstractVerticle {
         this.config = config;
 
         this.loginUri = "/auth/realms/" + config.REALM + "/protocol/openid-connect/token";
-        this.searchUri = "/auth/admin/realms/" + config.REALM + "/users";
-        this.searchBySinglePIDUri = "";
-        this.bulkPIDSearchUri = "";
+
     }
 
     public void loginHandler(RoutingContext routingContext) {
@@ -50,7 +46,7 @@ public class MxisdHandler extends AbstractVerticle {
         logger.info("received login request with headers : " + routingContext.request().headers());
         logger.info("Processing access token request to" + config.KEYCLOAK_HOST);
 
-        HttpRequest<Buffer> request = generateAccessTokenRequest(loginUri);
+        HttpRequest<Buffer> request = generateAccessTokenRequest();
 
         request
                 .sendForm(form, ar -> {
@@ -87,7 +83,7 @@ public class MxisdHandler extends AbstractVerticle {
     }
 
     public void getSearchAccessToken(RoutingContext routingContext) {
-        HttpRequest<Buffer> request = generateAccessTokenRequest(loginUri);
+        HttpRequest<Buffer> request = generateAccessTokenRequest();
         MultiMap form = helper.getUserForm(config.KEYCLOAK_SEARCH_PASSWORD, config.KEYCLOAK_SEARCH_USERNAME);
         logger.info(form);
 
@@ -108,11 +104,17 @@ public class MxisdHandler extends AbstractVerticle {
         });
     }
 
-    public void searchHandler(RoutingContext routingContext) {
-        String searchTerm = routingContext.getBodyAsJson().getString("search_term");
+    public void searchHandler(RoutingContext routingContext, String joltSpec) {
+
+        JsonObject requestBody = routingContext.getBodyAsJson();
         String accessToken = routingContext.get("access_token");
 
-        HttpRequest<Buffer> request = generateSearchRequest(searchTerm, searchUri, accessToken);
+        HttpRequest<Buffer> request = generateSearchRequest(
+                requestBody,
+                "/auth/admin/realms/" + config.REALM + "/users"
+                , accessToken);
+
+
         request.send(ar -> {
             if (ar.succeeded()) {
                 logger.info(ar.result().statusCode());
@@ -122,7 +124,7 @@ public class MxisdHandler extends AbstractVerticle {
                             .put("results", ar.result().bodyAsJsonArray());
 
                     JsonArray synapsifiedSearchResponse = JoltMapper
-                            .transform(searchResult, "search-spec.json");
+                            .transform(searchResult, joltSpec);
 
                     final JsonArray results = synapsifiedSearchResponse
                             .getJsonObject(0)
@@ -144,27 +146,18 @@ public class MxisdHandler extends AbstractVerticle {
         });
     }
 
+    public static void healthCheckHandler(RoutingContext routingContext) {
+
+    }
+
     private void respondWithStatusCode502(RoutingContext routingContext) {
         logger.warn("Couldn't get response from keycloak");
         routingContext.response().setStatusCode(502);
         routingContext.response().end(HttpJsonErrors.BADGATEWAY.encodePrettily());
     }
 
-    public void singlePIDQueryHandler(RoutingContext routingContext) {
-
-
-    }
-
-    public void bulkPIDQueryHandler(RoutingContext routingContext) {
-
-    }
-
-    public static void healthCheckHandler(RoutingContext routingContext) {
-
-    }
-
-    private HttpRequest<Buffer> generateAccessTokenRequest(String uri) {
-        HttpRequest<Buffer> request = this.webClient.post(443, config.KEYCLOAK_HOST, uri);
+    private HttpRequest<Buffer> generateAccessTokenRequest() {
+        HttpRequest<Buffer> request = this.webClient.post(443, config.KEYCLOAK_HOST, loginUri);
         request.headers().add("Authorization", config.KEYCLOAK_CLIENT_BASIC);
         request.headers().add("content-type", "application/x-www-form-urlencoded");
         request.ssl(true);
@@ -172,10 +165,30 @@ public class MxisdHandler extends AbstractVerticle {
         return request;
     }
 
-    private HttpRequest<Buffer> generateSearchRequest(String searchTerm, String uri, String accessToken) {
+    private HttpRequest<Buffer> generateSearchRequest(JsonObject requestBody, String uri, String accessToken) {
+
         HttpRequest<Buffer> request = this.webClient.get(443, config.KEYCLOAK_HOST, uri);
         request.headers().add("Authorization", "Bearer " + accessToken);
-        request.addQueryParam("search", searchTerm);
+
+        if (requestBody.containsKey("by")) {
+            String searchTerm = requestBody.getString("search_term");
+            request.addQueryParam("search", searchTerm);
+
+        } else if (requestBody.getJsonObject("lookup") != null) {
+            // TODO : write jolt specs for pid search
+            JsonObject lookup = requestBody.getJsonObject("lookup");
+            String value = lookup.getString("address");
+            // for now we will force email on 3PID search
+            request.addQueryParam("email", value);
+
+        } else if ((requestBody.getJsonArray("lookup") != null)) {
+            // TODO : write jolt specs for bulk search
+            JsonObject lookup = requestBody.getJsonObject("lookup");
+            String value = lookup.getString("address");
+            // for now we will force email on 3PID search
+            request.addQueryParam("email", value);
+        }
+
         request.method(HttpMethod.GET);
 
         return request;
