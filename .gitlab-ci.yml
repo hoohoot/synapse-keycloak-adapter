@@ -43,7 +43,9 @@ deploy-production:
     - eval $(ssh-agent -s)
     - echo "$SSH_PROD_PKEY" | tr -d '\r' | ssh-add - > /dev/null
     - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh  
+    - chmod 700 ~/.ssh
+    - echo "$SSH_PROD_KNOWN_HOSTS" > ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
   stage: deploy
   environment: 
     name: Production
