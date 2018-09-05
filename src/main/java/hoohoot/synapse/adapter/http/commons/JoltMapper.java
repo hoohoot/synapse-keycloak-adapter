@@ -31,7 +31,6 @@ public interface JoltMapper {
 
         Map<String, Object> context = new HashMap<>();
         context.put("MATRIX_DOMAIN", matrixDomain);
-        context.put("AT", "@");
         Object transformedResult = chainr.transform(JsonUtils.jsonToObject(responseBody.encode()), context);
 
         return new JsonArray(JsonUtils.toJsonString(transformedResult)).getJsonObject(0);
