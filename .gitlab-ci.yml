@@ -45,8 +45,8 @@ deploy-production:
     - chmod 700 ~/.ssh
   stage: deploy
   environment: 
-    - name: Production
-    - url: $PROD_URL
+    name: Production
+    url: $PROD_URL
   only: 
     - master  
   script:
