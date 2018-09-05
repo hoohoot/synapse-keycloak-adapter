@@ -26,6 +26,7 @@ maven-build:
       - target/*.jar
   
 build-master:
+  ubuntu:latest
   stage: package
   script:
     - docker build --pull -t "$CI_REGISTRY_IMAGE" .
