@@ -49,3 +49,4 @@ deploy-production:
     - master  
   script:
     - ssh -p $SSH_PROD_PORT $SSH_PROD_USER@$SSH_PROD_HOST
+  when: manual
