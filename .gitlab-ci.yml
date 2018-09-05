@@ -53,8 +53,6 @@ deploy-production:
   only: 
     - master  
   script:
-    - ssh -p $SSH_PROD_PORT $SSH_PROD_USER@$SSH_PROD_HOST
-    - cd $ADAPTER_PATH
-    - docker-compose pull
-    - docker-compose up -d
+    - ssh -p $SSH_PROD_PORT $SSH_PROD_USER@$SSH_PROD_HOST 'docker-compose -f $ADAPTER_PATH/docker-compose.yml pull'
+    - ssh -p $SSH_PROD_PORT $SSH_PROD_USER@$SSH_PROD_HOST 'docker-compose -f $ADAPTER_PATH/docker-compose.yml up -d'
   when: manual
