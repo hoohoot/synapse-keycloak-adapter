@@ -68,7 +68,6 @@ public class MxisdHandler extends AbstractVerticle {
         JsonObject requestBody = routingContext.getBodyAsJson();
         String accessToken = routingContext.get(ACCESS_TOKEN);
         String mxRequestUri = routingContext.request().uri();
-        logger.info(routingContext.request().uri());
 
         HttpRequest<Buffer> request = generateSearchRequest(
                 mxRequestUri,
@@ -80,7 +79,6 @@ public class MxisdHandler extends AbstractVerticle {
 
     public void bulkSearchHandler(RoutingContext routingContext) {
         String accessToken = routingContext.get(ACCESS_TOKEN);
-        logger.info(routingContext.request().uri());
 
         JsonArray bulkPID = routingContext.getBodyAsJson().getJsonArray("lookup");
         ArrayList<String> searchStrings = getSearchStringsFromBulkPids(bulkPID);
@@ -88,11 +86,10 @@ public class MxisdHandler extends AbstractVerticle {
 
         CompositeFuture.join(pidFutures).setHandler(ar -> {
             if (ar.succeeded()) {
-                logger.info("Bulk request succeeded");
                 JsonObject bulkResult = jsonHelper.buildBulkResponse(pidFutures);
                 routingContext.response().end(bulkResult.encodePrettily());
             } else {
-                logger.info("Bulk request failed");
+                logger.warn("Bulk request failed");
                 respondWithStatusCode502(routingContext);
             }
         });

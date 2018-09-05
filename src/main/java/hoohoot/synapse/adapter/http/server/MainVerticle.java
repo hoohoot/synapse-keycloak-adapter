@@ -54,21 +54,19 @@ public class MainVerticle extends AbstractVerticle {
 
         router.post(MX_BULK_PID_URI).handler(mxisdHandler::bulkSearchHandler);
 
-
         router.get("/ping").handler(res -> res.response().end(new JsonObject()
                 .put("ping", "pong")
                 .encodePrettily()));
 
         router.get("/health_check").handler(MxisdHandler::healthCheckHandler);
 
-
         server.requestHandler(router::accept)
                 .listen(config.SERVER_PORT, http -> {
                     if (http.succeeded()) {
                         startFuture.complete();
-                        logger.info("HTTP server started on http://localhost:{}", config.SERVER_PORT);
+                        logger.info("HTTP server started on http://localhost:", config.SERVER_PORT);
                     } else {
-                        logger.info("HTTP server failed to start on http://localhost:{}", config.SERVER_PORT);
+                        logger.info("HTTP server failed to start on http://localhost:", config.SERVER_PORT);
                         startFuture.fail(http.cause());
                     }
                 });

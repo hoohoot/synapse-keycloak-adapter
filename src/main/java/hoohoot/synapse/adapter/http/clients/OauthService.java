@@ -10,6 +10,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
 
+import static hoohoot.synapse.adapter.http.clients.ResponseHelper.respondWithStatusCode401;
 import static hoohoot.synapse.adapter.http.clients.ResponseHelper.respondWithStatusCode502;
 
 public class OauthService {
@@ -30,20 +31,16 @@ public class OauthService {
     public void getSearchAccessToken(RoutingContext routingContext) {
         HttpRequest<Buffer> request = generateAccessTokenRequest();
         MultiMap form = jsonHelper.getUserForm(config.KEYCLOAK_SEARCH_PASSWORD, config.KEYCLOAK_SEARCH_USERNAME);
-        logger.info(form);
 
         request.sendForm(form, ar -> {
             if (ar.succeeded()) {
-                logger.info(ar.result().statusCode());
                 if (ar.result().statusCode() == 200) {
                     final String access_token = "access_token";
                     routingContext.put(access_token, ar.result().bodyAsJsonObject()
                             .getString(access_token));
                     routingContext.next();
                 } else {
-                    logger.error("Couldn't get access token for search user");
-                    logger.info(routingContext.response().getStatusCode());
-                    routingContext.response().end("placeholder");
+                    respondWithStatusCode401(routingContext);
                 }
             } else {
                 respondWithStatusCode502(routingContext);
