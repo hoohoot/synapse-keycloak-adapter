@@ -64,8 +64,10 @@ docker-compose up -d
 ```
 SYNAPSE_HOST=matrix.example.org
 KEYCLOAK_HOST=keycloak.example.org
-KEYCLOAK_CLIENT_URI=/auth/realms/${your-realm}/protocol/openid-connect/token```
 KEYCLOAK_CLIENT_BASIC=${base64(client-id:client-secret)}
+REALM=my-keycloak-realm;
+KEYCLOAK_SEARCH_USERNAME=admin;
+KEYCLOAK_SEARCH_PASSWORD=password
 ```
 
 2. Package the application:
