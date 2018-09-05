@@ -70,7 +70,8 @@ public class JsonHelper {
         pidFutures.stream().map(Future::result)
                 .forEach(lookups::add);
         return new JsonObject()
-                .put("lookup", lookups);
+                .put("lookup", new JsonArray()
+                .addAll(lookups));
     }
 
 }

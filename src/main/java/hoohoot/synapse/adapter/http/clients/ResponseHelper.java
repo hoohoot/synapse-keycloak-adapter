@@ -105,25 +105,31 @@ class ResponseHelper {
 
     static void checkFutureStatusCodeAndRespond(AsyncResult<HttpResponse<Buffer>> ar,
                                                 RoutingContext routingContext,
-                                                Future<JsonObject> future) {
+                                                Future<JsonObject> future,
+                                                String matrixDomain) {
         ar.result();
         switch (ar.result().statusCode()) {
             case 200:
                 JsonObject transformedResponse = JoltMapper.transform(
-                        ar.result().bodyAsJsonArray(), "bulk-search-spec.json");
+                        ar.result().bodyAsJsonArray(), "bulk-search-spec.json", matrixDomain);
                 routingContext.response().setChunked(true);
                 routingContext.response().headers().add("content-type", "application/json");
-                routingContext.response().setStatusCode(200);
-                routingContext.response().write(transformedResponse.encodePrettily());
                 future.complete(transformedResponse);
                 break;
+            case 400 :
+                logger.warn("A request in the bulk failed : 400 Method not allowed");
+                future.fail("Unauthorized");
+                break;
             case 401:
+                logger.warn("A request in the bulk failed : 401 Unothorized");
                 future.fail("Unauthorized");
                 break;
             case 403:
+                logger.warn("A request in the bulk failed : 403 Forbidden");
                 future.fail("Forbidden");
                 break;
             default:
+                logger.warn("A request in the bulk did not reach keycloak");
                 future.fail("Unable to contact keycloak");
                 break;
         }
