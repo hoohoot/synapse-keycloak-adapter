@@ -29,6 +29,7 @@ public class OauthService {
     }
 
     public void getSearchAccessToken(RoutingContext routingContext) {
+        logger.debug("Trying to retrieve search access token");
         HttpRequest<Buffer> request = generateAccessTokenRequest();
         MultiMap form = jsonHelper.getUserForm(config.KEYCLOAK_SEARCH_PASSWORD, config.KEYCLOAK_SEARCH_USERNAME);
 
