@@ -17,6 +17,10 @@ class ResponseHelper {
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseHelper.class);
 
+    private ResponseHelper() {
+
+    }
+
     static void respondWithStatusCode502(RoutingContext routingContext) {
         logger.warn("Couldn't get response from keycloak");
         routingContext.response().setStatusCode(502);
