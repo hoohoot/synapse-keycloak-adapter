@@ -26,7 +26,6 @@ maven-build:
       - target/*.jar
   
 build-master:
-  image: ubuntu:latest
   stage: package
   script:
     - docker build --pull -t "$CI_REGISTRY_IMAGE" .
@@ -38,6 +37,7 @@ build-master:
     - master
     
 deploy-production:
+  image: ubuntu:latest
   before_script:
     - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
     - eval $(ssh-agent -s)
