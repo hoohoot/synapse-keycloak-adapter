@@ -1,4 +1,4 @@
-package hoohoot.synapse.adapter.http.helpers;
+package hoohoot.synapse.adapter.http.commons;
 
 import com.bazaarvoice.jolt.Chainr;
 import com.bazaarvoice.jolt.JsonUtils;
@@ -8,12 +8,6 @@ import io.vertx.core.json.JsonObject;
 
 public interface JoltMapper {
 
-    /**
-     * Transform a json object according to the provided jolt specification.
-     * @param responseBody
-     * @param specPath
-     * @return
-     */
      static JsonObject transform(JsonArray responseBody, String specPath){
 
         //Get Specification and load them into Chainr Object

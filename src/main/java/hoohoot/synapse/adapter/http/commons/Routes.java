@@ -1,4 +1,4 @@
-package hoohoot.synapse.adapter.http.helpers;
+package hoohoot.synapse.adapter.http.commons;
 
 public class Routes {
 

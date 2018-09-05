@@ -16,7 +16,7 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.handler.BodyHandler;
 
-import static hoohoot.synapse.adapter.http.helpers.Routes.*;
+import static hoohoot.synapse.adapter.http.commons.Routes.*;
 
 public class MainVerticle extends AbstractVerticle {
 
@@ -44,15 +44,13 @@ public class MainVerticle extends AbstractVerticle {
 
         router.post(MX_LOGIN_URI).handler(mxisdHandler::loginHandler);
 
-        router.post(MX_USER_SEARCH_URI).handler( routingContext -> {
+        router.post(MX_USER_SEARCH_URI).handler( routingContext ->
                 mxisdHandler.searchHandler(routingContext,
-                        "search-spec.json");
-        });
+                "search-spec.json"));
 
-        router.post(MX_SINGLE_PID_URI).handler(routingContext -> {
+        router.post(MX_SINGLE_PID_URI).handler(routingContext ->
                 mxisdHandler.searchHandler(routingContext,
-                        "pid-search-spec.json");
-        });
+                "pid-search-spec.json"));
 
         router.post(MX_BULK_PID_URI).handler(mxisdHandler::bulkSearchHandler);
 
