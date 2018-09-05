@@ -3,6 +3,7 @@ package hoohoot.synapse.adapter.http.server;
 import hoohoot.synapse.adapter.conf.MainConfiguration;
 import hoohoot.synapse.adapter.http.clients.JsonHelper;
 import hoohoot.synapse.adapter.http.clients.MxisdHandler;
+import hoohoot.synapse.adapter.http.clients.OauthService;
 import hoohoot.synapse.adapter.http.exceptions.ConfigurationException;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
@@ -16,6 +17,8 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.handler.BodyHandler;
 
+import static hoohoot.synapse.adapter.http.helpers.Routes.*;
+
 public class MainVerticle extends AbstractVerticle {
 
     private Logger logger = LoggerFactory.getLogger(MainVerticle.class);
@@ -25,40 +28,35 @@ public class MainVerticle extends AbstractVerticle {
 
         MainConfiguration config = new MainConfiguration();
 
-        final String loginUri = "/_mxisd/backend/api/v1/auth/login";
-        final String userSearchUri = "/_mxisd/backend/api/v1/directory/user/search";
-        final String singlePIDQueryHandler = "/_mxisd/backend/api/v1/identity/single";
-        final String bulkPIDQueryHandler = "/_mxisd/backend/api/v1/identity/bulk";
-
-        final JsonHelper helper = new JsonHelper(config);
+        final JsonHelper jsonHelper = new JsonHelper();
 
         WebClient webClient = WebClient.create(vertx, new WebClientOptions()
                 .setSsl(config.SSL_ACTIVE)
                 .setUserAgent(config.USER_AGENT));
 
-        MxisdHandler mxisdHandler = new MxisdHandler(webClient, config, helper);
+        OauthService oauthService = new OauthService(jsonHelper, config, webClient);
+        MxisdHandler mxisdHandler = new MxisdHandler(webClient, config, jsonHelper, oauthService);
 
         HttpServer server = vertx.createHttpServer();
         Router router = Router.router(vertx);
 
         router.route("/*").handler(BodyHandler.create());
-        router.post(loginUri).handler(mxisdHandler::loginHandler);
-        router.post(userSearchUri).handler(mxisdHandler::getSearchAccessToken);
-        router.post(userSearchUri).handler( routingContext -> {
+        router.post("/_mxisd/*").handler(oauthService::getSearchAccessToken);
+
+        router.post(MX_LOGIN_URI).handler(mxisdHandler::loginHandler);
+
+        router.post(MX_USER_SEARCH_URI).handler( routingContext -> {
                 mxisdHandler.searchHandler(routingContext,
                         "search-spec.json");
         });
 
-        router.post(singlePIDQueryHandler).handler(routingContext -> {
+        router.post(MX_SINGLE_PID_URI).handler(routingContext -> {
                 mxisdHandler.searchHandler(routingContext,
                         "pid-search-spec.json");
         });
 
-        router.post(bulkPIDQueryHandler).handler(routingContext -> {
-                mxisdHandler.searchHandler(routingContext,
-                        "bulk-search-spec.json");
+        router.post(MX_BULK_PID_URI).handler(mxisdHandler::bulkSearchHandler);
 
-        });
 
         router.get("/ping").handler(res -> res.response().end(new JsonObject()
                 .put("ping", "pong")

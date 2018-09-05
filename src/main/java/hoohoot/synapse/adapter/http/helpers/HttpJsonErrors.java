@@ -7,6 +7,6 @@ public class HttpJsonErrors {
 
     }
 
-    public static final JsonObject BADGATEWAY = new JsonObject().put("error", "502 Badgateway");
+    public static final JsonObject BADGATEWAY = new JsonObject().put("error", "502 bad gateway");
 
 }
