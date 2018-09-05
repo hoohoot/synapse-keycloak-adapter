@@ -1,4 +1,3 @@
-
 ![quality-gate](https://sonar.hoohoot.org/api/project_badges/measure?project=io.vertx%3Akeycloak-synapse-adapter&metric=alert_status)
 ![code-smells](https://sonar.hoohoot.org/api/project_badges/measure?project=io.vertx%3Akeycloak-synapse-adapter&metric=code_smells)
 ![bugs](https://sonar.hoohoot.org/api/project_badges/measure?project=io.vertx%3Akeycloak-synapse-adapter&metric=bugs)
@@ -25,9 +24,15 @@ The easiest way to set up a Keycloak Instance is to use Docker Compose (More inf
 
 ## Getting started
 
-1. Edit ``docker-compose.yml`` and edit the variables following your needs
+### Adapter only
 
-2. Start everything ``docker-compose up -d``
+1. Edit ``docker-compose-adapter-only.yml`` and edit the variables following your needs
+
+2. Start everything ``docker-compose -f docker-compose-adapter-only.yml up -d``
+
+### Complete setup
+
+TODO
 
 ## Upgrade
 
@@ -56,12 +61,6 @@ mvn clean install
 3. Run the fat jar :
 ```
 java -jar target/keycloak-synapse-adapter-${version}-SNAPSHOT-fat.jar -conf src/conf/config.json
-```
-
-(optional) You can also run the app using docker :
-
-```css
-docker-compose -f docker-compose-adapter-only.yml up
 ```
 
 # Ressources
