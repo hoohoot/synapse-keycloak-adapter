@@ -1,0 +1,20 @@
+[
+  {
+    "operation": "shift",
+    "spec": {
+      "*": {
+        "@(email)": "[0].lookup.address"
+      }
+    }
+  },
+  {
+    "operation": "default",
+    "spec": {
+      "*": {
+        "*": {
+          "medium": "email"
+        }
+      }
+    }
+  }
+]

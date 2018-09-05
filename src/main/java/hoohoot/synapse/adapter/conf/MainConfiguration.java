@@ -8,6 +8,7 @@ import java.util.Optional;
 
 public class MainConfiguration {
 
+
     private Logger logger = LoggerFactory.getLogger(MainConfiguration.class);
 
     public final String SYNAPSE_HOST;
@@ -23,25 +24,26 @@ public class MainConfiguration {
     public final Integer SERVER_PORT = 8080;
 
     public MainConfiguration() throws ConfigurationException {
-        logger.info("=== SETTING UP CONFIGURATION VARIABLES ===");
+        logger.debug("=== SETTING UP CONFIGURATION VARIABLES ===");
 
         SYNAPSE_HOST = getEnvironmentVariable("SYNAPSE_HOST");
-        logger.info("SYNAPSE HOST: " + SYNAPSE_HOST);
+        logger.debug("SYNAPSE HOST: " + SYNAPSE_HOST);
 
         KEYCLOAK_HOST = getEnvironmentVariable("KEYCLOAK_HOST");
-        logger.info("KEYCLOAK HOST: " + KEYCLOAK_HOST);
+        logger.debug("KEYCLOAK HOST: " + KEYCLOAK_HOST);
 
         REALM = getEnvironmentVariable("REALM");
-        logger.info("KEYCLOAK CLIENT URI: " + REALM);
+        logger.debug("KEYCLOAK CLIENT URI: " + REALM);
 
         KEYCLOAK_SEARCH_USERNAME = getEnvironmentVariable("KEYCLOAK_SEARCH_USERNAME");
-        logger.info("KEYCLOAK SEARCH_USER: " + KEYCLOAK_SEARCH_USERNAME);
+        logger.debug("KEYCLOAK SEARCH_USER: " + KEYCLOAK_SEARCH_USERNAME);
 
         KEYCLOAK_SEARCH_PASSWORD = getEnvironmentVariable("KEYCLOAK_SEARCH_PASSWORD");
-        logger.info("KEYCLOAK SEARCH PASSWORD" + KEYCLOAK_SEARCH_PASSWORD);
+        logger.debug("KEYCLOAK SEARCH PASSWORD" + KEYCLOAK_SEARCH_PASSWORD);
 
         KEYCLOAK_CLIENT_BASIC = getEnvironmentVariable("KEYCLOAK_CLIENT_BASIC");
-        logger.info("KEYCLOAK_CLIENT_BASIC: " + KEYCLOAK_CLIENT_BASIC);
+        logger.debug("KEYCLOAK_CLIENT_BASIC: " + KEYCLOAK_CLIENT_BASIC);
+
     }
 
     private String getEnvironmentVariable(String key) throws ConfigurationException {

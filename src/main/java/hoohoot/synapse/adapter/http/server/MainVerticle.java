@@ -3,6 +3,7 @@ package hoohoot.synapse.adapter.http.server;
 import hoohoot.synapse.adapter.conf.MainConfiguration;
 import hoohoot.synapse.adapter.http.clients.JsonHelper;
 import hoohoot.synapse.adapter.http.clients.MxisdHandler;
+import hoohoot.synapse.adapter.http.clients.OauthService;
 import hoohoot.synapse.adapter.http.exceptions.ConfigurationException;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Future;
@@ -15,6 +16,8 @@ import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.handler.BodyHandler;
 
+import static hoohoot.synapse.adapter.http.commons.Routes.*;
+
 public class MainVerticle extends AbstractVerticle {
 
     private Logger logger = LoggerFactory.getLogger(MainVerticle.class);
@@ -22,30 +25,34 @@ public class MainVerticle extends AbstractVerticle {
     @Override
     public void start(Future<Void> startFuture) throws ConfigurationException  {
 
-        final String loginUri = "/_mxisd/backend/api/v1/auth/login";
-        final String userSearchUri = "/_mxisd/backend/api/v1/directory/user/search";
-        final String singlePIDQueryHandler = "/_mxisd/backend/api/v1/identity/single";
-        final String bulkPIDQueryHandler = "/_mxisd/backend/api/v1/identity/bulk";
+        MainConfiguration config = new MainConfiguration();
 
-        MainConfiguration conf = new MainConfiguration();
-
-        final JsonHelper helper = new JsonHelper(conf);
+        final JsonHelper jsonHelper = new JsonHelper();
 
         WebClient webClient = WebClient.create(vertx, new WebClientOptions()
-                .setSsl(conf.SSL_ACTIVE)
-                .setUserAgent(conf.USER_AGENT));
+                .setSsl(config.SSL_ACTIVE)
+                .setUserAgent(config.USER_AGENT));
 
-        MxisdHandler mxisdHandler = new MxisdHandler(webClient, conf, helper);
+        OauthService oauthService = new OauthService(jsonHelper, config, webClient);
+        MxisdHandler mxisdHandler = new MxisdHandler(webClient, config, jsonHelper, oauthService);
 
         HttpServer server = vertx.createHttpServer();
         Router router = Router.router(vertx);
 
         router.route("/*").handler(BodyHandler.create());
-        router.post(loginUri).handler(mxisdHandler::loginHandler);
-        router.post(userSearchUri).handler(mxisdHandler::getSearchAccessToken);
-        router.post(userSearchUri).handler(mxisdHandler::searchHandler);
-        router.post(singlePIDQueryHandler).handler(mxisdHandler::singlePIDQueryHandler);
-        router.post(bulkPIDQueryHandler).handler(mxisdHandler::bulkPIDQueryHandler);
+        router.post("/_mxisd/*").handler(oauthService::getSearchAccessToken);
+
+        router.post(MX_LOGIN_URI).handler(mxisdHandler::loginHandler);
+
+        router.post(MX_USER_SEARCH_URI).handler( routingContext ->
+                mxisdHandler.searchHandler(routingContext,
+                "search-spec.json"));
+
+        router.post(MX_SINGLE_PID_URI).handler(routingContext ->
+                mxisdHandler.searchHandler(routingContext,
+                "pid-search-spec.json"));
+
+        router.post(MX_BULK_PID_URI).handler(mxisdHandler::bulkSearchHandler);
 
         router.get("/ping").handler(res -> res.response().end(new JsonObject()
                 .put("ping", "pong")
@@ -53,14 +60,13 @@ public class MainVerticle extends AbstractVerticle {
 
         router.get("/health_check").handler(MxisdHandler::healthCheckHandler);
 
-
         server.requestHandler(router::accept)
-                .listen(conf.SERVER_PORT, http -> {
+                .listen(config.SERVER_PORT, http -> {
                     if (http.succeeded()) {
                         startFuture.complete();
-                        logger.info("HTTP server started on http://localhost:{}", conf.SERVER_PORT);
+                        logger.info("HTTP server started on http://localhost:", config.SERVER_PORT);
                     } else {
-                        logger.info("HTTP server failed to start on http://localhost:{}", conf.SERVER_PORT);
+                        logger.info("HTTP server failed to start on http://localhost:", config.SERVER_PORT);
                         startFuture.fail(http.cause());
                     }
                 });

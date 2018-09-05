@@ -1,0 +1,30 @@
+[
+  {
+    "operation": "modify-default-beta",
+    "spec": {
+      "*": {
+        "mxid": "=concat('@',@(1,username),:,^MATRIX_DOMAIN)"
+      }
+    }
+  },
+  {
+    "operation": "shift",
+    "spec": {
+      "*": {
+        "@(email)": "[0].address",
+        "@(mxid)": "[0].id.value"
+      }
+    }
+  },
+  {
+    "operation": "default",
+    "spec": {
+      "*": {
+            "*": {
+              "type": "mxid"
+            },
+        "medium": "email"
+      }
+    }
+  }
+]
