@@ -11,13 +11,6 @@ stages:
   - build
   - package
   - deploy
-  
-before_script:
-  - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
-  - eval $(ssh-agent -s)
-  - echo "$SSH_PROD_PKEY" | tr -d '\r' | ssh-add - > /dev/null
-  - mkdir -p ~/.ssh
-  - chmod 700 ~/.ssh  
 
 maven-build:
   image: maven:3-jdk-8
@@ -44,6 +37,12 @@ build-master:
     - master
     
 deploy-production:
+  before_script:
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PROD_PKEY" | tr -d '\r' | ssh-add - > /dev/null
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh  
   stage: deploy
   environment: 
     name: Production
