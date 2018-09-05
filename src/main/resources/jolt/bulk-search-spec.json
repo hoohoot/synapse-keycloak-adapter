@@ -3,7 +3,7 @@
     "operation": "modify-default-beta",
     "spec": {
       "*": {
-        "fullname": "=concat(@(1,firstName),' ',@(1,lastName))"
+        "mxid": "=concat('@',@(1,username),:,^MATRIX_DOMAIN)"
       }
     }
   },
@@ -11,8 +11,19 @@
     "operation": "shift",
     "spec": {
       "*": {
-        "@(fullname)": "[0].results.[&1].display_name",
-        "@(username)": "[0].results.[&1].user_id"
+        "@(email)": "[0].address",
+        "@(mxid)": "[0].id.value"
+      }
+    }
+  },
+  {
+    "operation": "default",
+    "spec": {
+      "*": {
+            "*": {
+              "type": "mxid"
+            },
+        "medium": "email"
       }
     }
   }

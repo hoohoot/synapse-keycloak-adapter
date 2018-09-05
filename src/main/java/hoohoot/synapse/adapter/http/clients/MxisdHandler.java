@@ -100,11 +100,11 @@ public class MxisdHandler extends AbstractVerticle {
 
     private List<Future> startRequestFuture(ArrayList<String> searchStrings,
                                             RoutingContext routingContext,
-                                            String accesstoken) {
+                                            String accessToken) {
         return searchStrings.stream().map(email -> {
 
             Future<JsonObject> requestFuture = Future.future();
-            HttpRequest<Buffer> request = initRequest(accesstoken);
+            HttpRequest<Buffer> request = initRequest(accessToken);
 
             //forcing email on 3PID bulk search for now
             request.addQueryParam("email", email);
@@ -113,7 +113,8 @@ public class MxisdHandler extends AbstractVerticle {
                 if (ar.succeeded()) {
                     checkFutureStatusCodeAndRespond(ar,
                             routingContext,
-                            requestFuture
+                            requestFuture,
+                            config.SYNAPSE_HOST
                     );
                 } else {
                     requestFuture.fail("failed to query email " + email);
