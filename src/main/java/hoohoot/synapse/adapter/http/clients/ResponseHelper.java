@@ -23,7 +23,7 @@ class ResponseHelper {
         routingContext.response().end(HttpJsonErrors.BADGATEWAY.encodePrettily());
     }
 
-    private static void respondWithStatusCode401(RoutingContext routingContext) {
+    public static void respondWithStatusCode401(RoutingContext routingContext) {
         logger.warn("Keycloak responded with Status code 401");
         routingContext.response().setStatusCode(401);
         routingContext.response().end(HttpJsonErrors.UNAUTHORIZED.encodePrettily());
@@ -42,31 +42,28 @@ class ResponseHelper {
 
         ar.result();
         switch (ar.result().statusCode()) {
-
             case 200:
                 JsonObject keycloakResponse = ar.result().bodyAsJsonObject();
-                UserInfoDigest userinfo = jsonHelper.extractTokentInfo(keycloakResponse
+                UserInfoDigest userinfo = jsonHelper
+                        .extractTokentInfo(keycloakResponse
                         .getString("access_token"));
-                logger.info("response : " + jsonHelper.buildSynapseLoginJsonBody(userinfo)
-                        .encodePrettily());
+
                 routingContext.response().setStatusCode(200);
                 routingContext.response().end(
-                        jsonHelper.buildSynapseLoginJsonBody(userinfo)
+                        jsonHelper
+                                .buildSynapseLoginJsonBody(userinfo)
                                 .encodePrettily());
                 break;
-
             case 401:
                 UserInfoDigest userInfoDigest = new UserInfoDigest(
                         "", form.get("username"), false);
-                logger.info("response : " + jsonHelper.buildSynapseLoginJsonBody(userInfoDigest)
-                        .encodePrettily());
+
                 routingContext.response().setStatusCode(401);
                 routingContext.response().end(
                         jsonHelper.buildSynapseLoginJsonBody(userInfoDigest)
                                 .encodePrettily());
                 break;
-
-                case 403:
+            case 403:
                 respondWithStatusCode403(routingContext);
                 break;
             default:
@@ -74,8 +71,6 @@ class ResponseHelper {
                 break;
         }
         routingContext.response().end();
-
-
     }
 
     static void checkStatusCodeAndRespond(AsyncResult<HttpResponse<Buffer>> ar,
@@ -116,9 +111,9 @@ class ResponseHelper {
                 routingContext.response().headers().add("content-type", "application/json");
                 future.complete(transformedResponse);
                 break;
-            case 400 :
+            case 400:
                 logger.warn("A request in the bulk failed : 400 Method not allowed");
-                future.fail("Unauthorized");
+                future.fail("Method not allowed");
                 break;
             case 401:
                 logger.warn("A request in the bulk failed : 401 Unothorized");
