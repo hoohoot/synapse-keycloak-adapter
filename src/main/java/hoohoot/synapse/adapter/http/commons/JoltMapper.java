@@ -18,7 +18,6 @@ public interface JoltMapper {
         Chainr chainr = Chainr.fromSpec(chainrSpecJSON);
 
         // Transform the response into a pretty Json
-        Map<String, Object> context = new HashMap<>();
         Object transformedResult = chainr.transform(JsonUtils.jsonToObject(responseBody.encode()));
 
         return new JsonArray(JsonUtils.toJsonString(transformedResult)).getJsonObject(0);
