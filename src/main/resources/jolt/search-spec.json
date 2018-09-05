@@ -2,22 +2,18 @@
   {
     "operation": "modify-default-beta",
     "spec": {
-      "results": {
         "*": {
           "fullname": "=concat(@(1,firstName),' ',@(1,lastName))"
         }
-      }
     }
   },
   {
     "operation": "shift",
     "spec": {
-      "results": {
         "*": {
           "@(fullname)": "[0].results.[&1].display_name",
           "@(username)": "[0].results.[&1].user_id"
         }
-      }
     }
   }
 ]

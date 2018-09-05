@@ -1,9 +1,10 @@
 package hoohoot.synapse.adapter.http.clients;
 
 import hoohoot.synapse.adapter.conf.MainConfiguration;
-import hoohoot.synapse.adapter.http.helpers.JoltMapper;
-import hoohoot.synapse.adapter.models.UserInfoDigest;
-import io.vertx.core.*;
+import io.vertx.core.AbstractVerticle;
+import io.vertx.core.CompositeFuture;
+import io.vertx.core.Future;
+import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
@@ -15,11 +16,10 @@ import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static hoohoot.synapse.adapter.http.clients.JsonResponseService.respondWithStatusCode502;
+import static hoohoot.synapse.adapter.http.clients.JsonResponseService.*;
 import static hoohoot.synapse.adapter.http.helpers.Routes.MX_SINGLE_PID_URI;
 import static hoohoot.synapse.adapter.http.helpers.Routes.MX_USER_SEARCH_URI;
 
@@ -40,7 +40,6 @@ public class MxisdHandler extends AbstractVerticle {
         this.keycloakUserSearchURI = "/auth/admin/realms/" + config.REALM + "/users";
     }
 
-
     public void loginHandler(RoutingContext routingContext) {
         JsonObject authRequestBody = routingContext.getBodyAsJson().getJsonObject("auth");
 
@@ -48,41 +47,13 @@ public class MxisdHandler extends AbstractVerticle {
         final String username = authRequestBody.getString("localpart");
 
         MultiMap form = jsonHelper.getUserForm(keycloakPassword, username);
-        logger.info("keycloak host : " + config.KEYCLOAK_HOST);
-        logger.info("keycloak uri : " + config.REALM);
-        logger.info("received login request with headers : " + routingContext.request().headers());
-        logger.info("Processing access token request to" + config.KEYCLOAK_HOST);
 
         HttpRequest<Buffer> request = oauthService.generateAccessTokenRequest();
 
         request
                 .sendForm(form, ar -> {
                     if (ar.succeeded()) {
-                        logger.info(config.KEYCLOAK_HOST + "responded with status code " + ar.result().statusCode());
-                        if (ar.result().statusCode() == 200) {
-                            logger.info("pouet");
-                            JsonObject keycloakResponse = ar.result().bodyAsJsonObject();
-                            UserInfoDigest userinfo = jsonHelper.extractTokentInfo(keycloakResponse
-                                    .getString("access_token"));
-                            logger.info("response : " + jsonHelper.buildSynapseLoginJsonBody(userinfo)
-                                    .encodePrettily());
-                            routingContext.response().setStatusCode(200);
-                            routingContext.response().end(
-                                    jsonHelper.buildSynapseLoginJsonBody(userinfo)
-                                            .encodePrettily());
-
-                        } else if (ar.result().statusCode() == 401) {
-                            logger.info(config.KEYCLOAK_HOST + " responded with status code " + ar.result().statusCode());
-                            UserInfoDigest userInfoDigest = new UserInfoDigest(
-                                    "", form.get("username"), false);
-                            logger.info("response : " + jsonHelper.buildSynapseLoginJsonBody(userInfoDigest)
-                                    .encodePrettily());
-                            routingContext.response().setStatusCode(401);
-                            routingContext.response().end(
-                                    jsonHelper.buildSynapseLoginJsonBody(userInfoDigest)
-                                            .encodePrettily());
-                        }
-                        ar.succeeded();
+                        checkUserAndRequestSynapseLogin(ar, routingContext, form);
                     } else {
                         respondWithStatusCode502(routingContext);
                     }
@@ -102,7 +73,9 @@ public class MxisdHandler extends AbstractVerticle {
                 requestBody,
                 accessToken);
 
-        sendKeycloakSearchRequest(routingContext, joltSpec, request);
+        request.send(ar -> {
+            checkStatusCodeAndRespond(ar, routingContext, joltSpec);
+        });
     }
 
     public void bulkSearchHandler(RoutingContext routingContext) {
@@ -115,17 +88,19 @@ public class MxisdHandler extends AbstractVerticle {
 
         CompositeFuture.join(pidFutures).setHandler(ar -> {
             if (ar.succeeded()) {
-                logger.info("composite future succeeded");
+                logger.info("Bulk request succeeded");
                 JsonObject bulkResult = jsonHelper.buildBulkResponse(pidFutures);
                 routingContext.response().end(bulkResult.encodePrettily());
             } else {
-                logger.info("composite future failed");
+                logger.info("Bulk request failed");
                 respondWithStatusCode502(routingContext);
             }
         });
     }
 
-    private List<Future> startRequestFuture(ArrayList<String> searchStrings, RoutingContext context, String accesstoken) {
+    private List<Future> startRequestFuture(ArrayList<String> searchStrings,
+                                            RoutingContext routingContext,
+                                            String accesstoken) {
         return searchStrings.stream().map(email -> {
 
             Future<JsonObject> requestFuture = Future.future();
@@ -136,22 +111,11 @@ public class MxisdHandler extends AbstractVerticle {
 
             request.send(ar -> {
                 if (ar.succeeded()) {
-                    logger.info("Success");
-                    context.response().headers().add("content-type", "application/json");
-                    context.response().setChunked(true);
-                    final JsonObject userinfo = ar.result().bodyAsJsonArray().getJsonObject(0);
-                    JsonObject pidREsponse = new JsonObject()
-                            .put("type", "email")
-                            .put("address", ar.result()
-                                    .bodyAsJsonArray()
-                                    .getJsonObject(0)
-                                    .getString("email")
-                            )
-                            .put("id", new JsonObject()
-                            .put("type", "localpart")
-                            .put("value", userinfo
-                                    .getString("username")));
-                    requestFuture.complete(pidREsponse);
+                    checkFutureStatusCodeAndRespond(ar,
+                            routingContext,
+                            "bulk-search-spec.json",
+                            requestFuture
+                    );
                 } else {
                     requestFuture.fail("failed to query email " + email);
                 }
@@ -171,40 +135,6 @@ public class MxisdHandler extends AbstractVerticle {
         return searchStrings;
     }
 
-    private void sendKeycloakSearchRequest(RoutingContext routingContext,
-                                           String joltSpec,
-                                           HttpRequest<Buffer> request) {
-        request.send(ar -> {
-            if (ar.succeeded()) {
-                logger.info(ar.result().statusCode());
-                if (ar.result().statusCode() == 200) {
-
-                    JsonObject searchResult = new JsonObject()
-                            .put("results", ar.result().bodyAsJsonArray());
-
-                    JsonArray synapsifiedSearchResponse = JoltMapper
-                            .transform(searchResult, joltSpec);
-
-                    final JsonArray results = synapsifiedSearchResponse
-                            .getJsonObject(0)
-                            .getJsonArray("results");
-
-                    JsonObject finalResponse = new JsonObject()
-                            .put("limited", false)
-                            .put("results", results);
-                    logger.info(synapsifiedSearchResponse.encodePrettily());
-
-                    routingContext.response().setStatusCode(200);
-                    routingContext.response().end(finalResponse.encodePrettily());
-                } else {
-                    // TODO
-                }
-            } else {
-                respondWithStatusCode502(routingContext);
-            }
-        });
-    }
-
     public static void healthCheckHandler(RoutingContext routingContext) {
 
     }
@@ -221,6 +151,7 @@ public class MxisdHandler extends AbstractVerticle {
                 String searchTerm = requestBody.getString("search_term");
                 request.addQueryParam("search", searchTerm);
                 break;
+
             case (MX_SINGLE_PID_URI):
                 // TODO : write jolt specs for pid search
                 JsonObject lookup = requestBody.getJsonObject("lookup");
@@ -230,6 +161,7 @@ public class MxisdHandler extends AbstractVerticle {
                 //artificially return a single response
                 request.addQueryParam("max", "1");
                 break;
+
             default:
                 break;
         }

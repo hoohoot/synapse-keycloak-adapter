@@ -14,7 +14,7 @@ public interface JoltMapper {
      * @param specPath
      * @return
      */
-    public static JsonArray transform(JsonObject responseBody, String specPath){
+     static JsonObject transform(JsonArray responseBody, String specPath){
 
         //Get Specification and load them into Chainr Object
         Object chainrSpecJSON = JsonUtils.jsonToObject(JoltMapper.class.getResourceAsStream("/jolt/" + specPath));
@@ -23,7 +23,7 @@ public interface JoltMapper {
         // Transform the response into a pretty Json
         Object transformedResult = chainr.transform(JsonUtils.jsonToObject(responseBody.encode()));
 
-        return new JsonArray(JsonUtils.toJsonString(transformedResult));
+        return new JsonArray(JsonUtils.toJsonString(transformedResult)).getJsonObject(0);
     }
 
 }
