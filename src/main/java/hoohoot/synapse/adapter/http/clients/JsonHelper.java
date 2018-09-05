@@ -1,25 +1,15 @@
 package hoohoot.synapse.adapter.http.clients;
 
-import hoohoot.synapse.adapter.conf.MainConfiguration;
 import hoohoot.synapse.adapter.models.UserInfoDigest;
+import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
 import java.util.Base64;
+import java.util.List;
 
 public class JsonHelper {
-    private final MainConfiguration config;
-
-    public JsonHelper(MainConfiguration config) {
-        this.config = config;
-    }
-
-    public String desynapsifyUsername(String username) {
-        username = username.replace(":" + config.SYNAPSE_HOST, "");
-        username = username.substring(1);
-        return username;
-    }
 
     public UserInfoDigest extractTokentInfo(String bearer) {
         String[] splittedJWT = bearer.split("\\.");
@@ -73,6 +63,14 @@ public class JsonHelper {
         profile.put("three_pids", treePids);
         auth.put("profile", profile);
         return new JsonObject().put("auth", auth);
+    }
+
+    public JsonObject buildBulkResponse(List<Future> pidFutures) {
+        JsonArray lookups = new JsonArray();
+        pidFutures.stream().map(Future::result)
+                .forEach(lookups::add);
+        return new JsonObject()
+                .put("lookup", lookups);
     }
 
 }
