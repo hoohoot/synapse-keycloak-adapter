@@ -1,7 +1,7 @@
 package hoohoot.synapse.adapter.http.clients;
 
-import hoohoot.synapse.adapter.http.helpers.HttpJsonErrors;
-import hoohoot.synapse.adapter.http.helpers.JoltMapper;
+import hoohoot.synapse.adapter.http.commons.HttpJsonErrors;
+import hoohoot.synapse.adapter.http.commons.JoltMapper;
 import hoohoot.synapse.adapter.models.UserInfoDigest;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -13,9 +13,9 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpResponse;
 
-class JsonResponseService {
+class ResponseHelper {
 
-    private static final Logger logger = LoggerFactory.getLogger(JsonResponseService.class);
+    private static final Logger logger = LoggerFactory.getLogger(ResponseHelper.class);
 
     static void respondWithStatusCode502(RoutingContext routingContext) {
         logger.warn("Couldn't get response from keycloak");
@@ -105,12 +105,12 @@ class JsonResponseService {
 
     static void checkFutureStatusCodeAndRespond(AsyncResult<HttpResponse<Buffer>> ar,
                                                 RoutingContext routingContext,
-                                                String joltSpec,
                                                 Future<JsonObject> future) {
         ar.result();
         switch (ar.result().statusCode()) {
             case 200:
-                JsonObject transformedResponse = JoltMapper.transform(ar.result().bodyAsJsonArray(), joltSpec);
+                JsonObject transformedResponse = JoltMapper.transform(
+                        ar.result().bodyAsJsonArray(), "bulk-search-spec.json");
                 routingContext.response().setChunked(true);
                 routingContext.response().headers().add("content-type", "application/json");
                 routingContext.response().setStatusCode(200);

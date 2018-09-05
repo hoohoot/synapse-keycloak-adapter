@@ -10,7 +10,7 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
 
-import static hoohoot.synapse.adapter.http.clients.JsonResponseService.respondWithStatusCode502;
+import static hoohoot.synapse.adapter.http.clients.ResponseHelper.respondWithStatusCode502;
 
 public class OauthService {
 
@@ -36,8 +36,9 @@ public class OauthService {
             if (ar.succeeded()) {
                 logger.info(ar.result().statusCode());
                 if (ar.result().statusCode() == 200) {
-                    routingContext.put("access_token", ar.result().bodyAsJsonObject()
-                            .getString("access_token"));
+                    final String access_token = "access_token";
+                    routingContext.put(access_token, ar.result().bodyAsJsonObject()
+                            .getString(access_token));
                     routingContext.next();
                 } else {
                     logger.error("Couldn't get access token for search user");
@@ -50,7 +51,7 @@ public class OauthService {
         });
     }
 
-    public HttpRequest<Buffer> generateAccessTokenRequest() {
+    protected HttpRequest<Buffer> generateAccessTokenRequest() {
         HttpRequest<Buffer> request = this.webClient.post(443, config.KEYCLOAK_HOST, loginUri);
         request.headers().add("Authorization", config.KEYCLOAK_CLIENT_BASIC);
         request.headers().add("content-type", "application/x-www-form-urlencoded");

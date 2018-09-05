@@ -19,9 +19,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static hoohoot.synapse.adapter.http.clients.JsonResponseService.*;
-import static hoohoot.synapse.adapter.http.helpers.Routes.MX_SINGLE_PID_URI;
-import static hoohoot.synapse.adapter.http.helpers.Routes.MX_USER_SEARCH_URI;
+import static hoohoot.synapse.adapter.http.clients.ResponseHelper.*;
+import static hoohoot.synapse.adapter.http.commons.Routes.MX_SINGLE_PID_URI;
+import static hoohoot.synapse.adapter.http.commons.Routes.MX_USER_SEARCH_URI;
 
 public class MxisdHandler extends AbstractVerticle {
     private final JsonHelper jsonHelper;
@@ -31,6 +31,8 @@ public class MxisdHandler extends AbstractVerticle {
 
     private WebClient webClient;
     private MainConfiguration config;
+    private  final String ACCESS_TOKEN = "access_token";
+
 
     public MxisdHandler(WebClient webClient, MainConfiguration config, JsonHelper jsonHelper, OauthService oauthService) {
         this.oauthService = oauthService;
@@ -64,7 +66,7 @@ public class MxisdHandler extends AbstractVerticle {
     public void searchHandler(RoutingContext routingContext, String joltSpec) {
 
         JsonObject requestBody = routingContext.getBodyAsJson();
-        String accessToken = routingContext.get("access_token");
+        String accessToken = routingContext.get(ACCESS_TOKEN);
         String mxRequestUri = routingContext.request().uri();
         logger.info(routingContext.request().uri());
 
@@ -73,13 +75,11 @@ public class MxisdHandler extends AbstractVerticle {
                 requestBody,
                 accessToken);
 
-        request.send(ar -> {
-            checkStatusCodeAndRespond(ar, routingContext, joltSpec);
-        });
+        request.send(ar -> checkStatusCodeAndRespond(ar, routingContext, joltSpec));
     }
 
     public void bulkSearchHandler(RoutingContext routingContext) {
-        String accessToken = routingContext.get("access_token");
+        String accessToken = routingContext.get(ACCESS_TOKEN);
         logger.info(routingContext.request().uri());
 
         JsonArray bulkPID = routingContext.getBodyAsJson().getJsonArray("lookup");
@@ -113,7 +113,6 @@ public class MxisdHandler extends AbstractVerticle {
                 if (ar.succeeded()) {
                     checkFutureStatusCodeAndRespond(ar,
                             routingContext,
-                            "bulk-search-spec.json",
                             requestFuture
                     );
                 } else {
@@ -135,6 +134,7 @@ public class MxisdHandler extends AbstractVerticle {
         return searchStrings;
     }
 
+    // TODO : implement this
     public static void healthCheckHandler(RoutingContext routingContext) {
 
     }
