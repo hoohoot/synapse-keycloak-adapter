@@ -32,6 +32,7 @@ build-master:
     - master
     
 deploy-production:
+  image: debian:latest
   before_script:
     - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
     - echo "$SSH_PROD_PKEY" | tr -d '\r' | ssh-add - > /dev/null
@@ -42,4 +43,4 @@ deploy-production:
   only: 
     - master  
   script:
-    - ssh $SSH_PROD_USER@$PROD_HOST
+    - ssh -p $SSH_PROD_PORT $SSH_PROD_USER@$SSH_PROD_HOST
