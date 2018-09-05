@@ -26,9 +26,24 @@ The easiest way to set up a Keycloak Instance is to use Docker Compose (More inf
 
 ### Adapter only
 
+If you only need the adapter you can run only this part :
+
+_With docker_ :
+
+Run the following command after having replaced the environment variables with your own values :
+
+```
+docker run -e \
+
+hoohoot/synapse-keycloak-adaper
+```
+
+_With docker compose_ :
+
 1. Edit ``docker-compose-adapter-only.yml`` and edit the variables following your needs
 
-2. Start everything ``docker-compose -f docker-compose-adapter-only.yml up -d``
+2. Start the adapter : 
+```docker-compose -f docker-compose-adapter-only.yml up -d```
 
 ### Complete setup
 
