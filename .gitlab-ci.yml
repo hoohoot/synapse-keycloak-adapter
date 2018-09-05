@@ -15,6 +15,11 @@ stages:
 maven-build:
   image: maven:3-jdk-8
   stage: build
+  variables:
+    MAVEN_OPTS: "--batch-mode -Dmaven.repo.local=maven.repository"
+  cache:
+    paths:
+      - maven.repository/
   script: "mvn package -B -DskipTests"
   artifacts:
     paths:
