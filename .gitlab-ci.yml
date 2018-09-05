@@ -37,14 +37,16 @@ build-master:
     - master
     
 deploy-production:
-  image: debian:latest
+  image: ubuntu:latest
   before_script:
     - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
     - echo "$SSH_PROD_PKEY" | tr -d '\r' | ssh-add - > /dev/null
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
   stage: deploy
-  environment: Production
+  environment: 
+    - name: Production
+    - url: $PROD_URL
   only: 
     - master  
   script:
