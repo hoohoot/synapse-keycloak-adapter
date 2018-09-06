@@ -1,6 +1,6 @@
 package hoohoot.synapse.adapter.http.clients;
 
-import hoohoot.synapse.adapter.conf.MainConfiguration;
+import hoohoot.synapse.adapter.conf.ServerConfig;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
@@ -16,21 +16,22 @@ import static hoohoot.synapse.adapter.http.clients.ResponseHelper.respondWithSta
 public class OauthService {
 
     private final Logger logger = LoggerFactory.getLogger(OauthService.class);
-    private final MainConfiguration config;
+    private final ServerConfig config;
     private final JsonHelper jsonHelper;
     private final WebClient webClient;
     private final String loginUri;
 
-    public OauthService(JsonHelper jsonHelper, MainConfiguration config, WebClient webClient) {
+    public OauthService(JsonHelper jsonHelper, ServerConfig config, WebClient webClient) {
         this.config = config;
         this.jsonHelper = jsonHelper;
         this.webClient = webClient;
-        this.loginUri = "/auth/realms/" + config.REALM + "/protocol/openid-connect/token";
+        this.loginUri = "/auth/realms/" + config.getRealm() + "/protocol/openid-connect/token";
     }
 
     public void getSearchAccessToken(RoutingContext routingContext) {
+        logger.debug("Trying to retrieve search access token");
         HttpRequest<Buffer> request = generateAccessTokenRequest();
-        MultiMap form = jsonHelper.getUserForm(config.KEYCLOAK_SEARCH_PASSWORD, config.KEYCLOAK_SEARCH_USERNAME);
+        MultiMap form = jsonHelper.buildUserForm(config.getKeycloakSearchPassword(), config.getKeycloakSearchUsername());
 
         request.sendForm(form, ar -> {
             if (ar.succeeded()) {
@@ -49,8 +50,8 @@ public class OauthService {
     }
 
     protected HttpRequest<Buffer> generateAccessTokenRequest() {
-        HttpRequest<Buffer> request = this.webClient.post(443, config.KEYCLOAK_HOST, loginUri);
-        request.headers().add("Authorization", config.KEYCLOAK_CLIENT_BASIC);
+        HttpRequest<Buffer> request = this.webClient.post(443, config.getKeycloakHost(), loginUri);
+        request.headers().add("Authorization", config.getKeycloakClientBasicAuth());
         request.headers().add("content-type", "application/x-www-form-urlencoded");
         request.ssl(true);
         request.method(HttpMethod.POST);

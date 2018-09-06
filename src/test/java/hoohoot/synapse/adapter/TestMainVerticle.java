@@ -1,6 +1,5 @@
 package hoohoot.synapse.adapter;
 
-import hoohoot.synapse.adapter.conf.MainConfiguration;
 import hoohoot.synapse.adapter.http.exceptions.ConfigurationException;
 import hoohoot.synapse.adapter.http.server.MainVerticle;
 import io.vertx.core.DeploymentOptions;

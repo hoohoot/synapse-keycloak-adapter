@@ -17,6 +17,10 @@ class ResponseHelper {
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseHelper.class);
 
+    private ResponseHelper() {
+
+    }
+
     static void respondWithStatusCode502(RoutingContext routingContext) {
         logger.warn("Couldn't get response from keycloak");
         routingContext.response().setStatusCode(502);
@@ -45,7 +49,7 @@ class ResponseHelper {
             case 200:
                 JsonObject keycloakResponse = ar.result().bodyAsJsonObject();
                 UserInfoDigest userinfo = jsonHelper
-                        .extractTokentInfo(keycloakResponse
+                        .extractUserInfoFromToken(keycloakResponse
                         .getString("access_token"));
 
                 routingContext.response().setStatusCode(200);
