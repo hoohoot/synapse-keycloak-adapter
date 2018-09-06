@@ -68,7 +68,6 @@ public class ServerConfig {
             throw new ConfigurationException();
         }
 
-
         if (StringUtils.isBlank(realm)) {
             logger.debug("REALM is empty, using '{}' by default", KEYCLOAK_REALM_DEFAULT);
             realm = KEYCLOAK_REALM_DEFAULT;
@@ -147,13 +146,5 @@ public class ServerConfig {
 
     public Integer getServerPort() {
         return Integer.parseInt(serverPort);
-    }
-
-    public String getKeycloakClientId() {
-        return keycloakClientId;
-    }
-
-    public String getKeycloakClientSecret() {
-        return keycloakClientSecret;
     }
 }
