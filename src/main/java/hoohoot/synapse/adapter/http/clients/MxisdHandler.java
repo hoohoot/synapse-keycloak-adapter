@@ -46,6 +46,7 @@ public class MxisdHandler extends AbstractVerticle {
     }
 
     public void loginHandler(RoutingContext routingContext) {
+        logger.info("Authentication process started");
         JsonObject authRequestBody = routingContext.getBodyAsJson().getJsonObject("auth");
 
         final String keycloakPassword = authRequestBody.getString("password");
@@ -66,6 +67,7 @@ public class MxisdHandler extends AbstractVerticle {
     }
 
     public void searchHandler(RoutingContext routingContext, String joltSpec) {
+        logger.info("Starting a directory search");
         JsonObject requestBody = routingContext.getBodyAsJson();
         String accessToken = routingContext.get(ACCESS_TOKEN);
         String mxRequestUri = routingContext.request().uri();
@@ -76,6 +78,7 @@ public class MxisdHandler extends AbstractVerticle {
     }
 
     public void bulkSearchHandler(RoutingContext routingContext) {
+        logger.info("Starting a Bulk Search");
         String accessToken = routingContext.get(ACCESS_TOKEN);
 
         JsonArray bulkPID = routingContext.getBodyAsJson().getJsonArray("lookup");
@@ -84,6 +87,7 @@ public class MxisdHandler extends AbstractVerticle {
 
         CompositeFuture.join(pidFutures).setHandler(ar -> {
             if (ar.succeeded()) {
+                logger.debug("Bulk Search succeeded");
                 JsonObject bulkResult = jsonHelper.buildBulkResponse(pidFutures);
                 routingContext.response().end(bulkResult.encodePrettily());
             } else {
