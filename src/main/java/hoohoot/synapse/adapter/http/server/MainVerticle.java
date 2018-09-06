@@ -1,6 +1,6 @@
 package hoohoot.synapse.adapter.http.server;
 
-import hoohoot.synapse.adapter.conf.MainConfiguration;
+import hoohoot.synapse.adapter.conf.ServerConfig;
 import hoohoot.synapse.adapter.http.clients.JsonHelper;
 import hoohoot.synapse.adapter.http.clients.MxisdHandler;
 import hoohoot.synapse.adapter.http.clients.OauthService;
@@ -25,13 +25,13 @@ public class MainVerticle extends AbstractVerticle {
     @Override
     public void start(Future<Void> startFuture) throws ConfigurationException  {
 
-        MainConfiguration config = new MainConfiguration();
+        ServerConfig config = new ServerConfig();
 
         final JsonHelper jsonHelper = new JsonHelper();
 
         WebClient webClient = WebClient.create(vertx, new WebClientOptions()
-                .setSsl(config.SSL_ACTIVE)
-                .setUserAgent(config.USER_AGENT));
+                .setSsl(config.getSslActive())
+                .setUserAgent(config.getUserAgent()));
 
         OauthService oauthService = new OauthService(jsonHelper, config, webClient);
         MxisdHandler mxisdHandler = new MxisdHandler(webClient, config, jsonHelper, oauthService);
@@ -61,12 +61,12 @@ public class MainVerticle extends AbstractVerticle {
         router.get("/health_check").handler(MxisdHandler::healthCheckHandler);
 
         server.requestHandler(router::accept)
-                .listen(config.SERVER_PORT, http -> {
+                .listen(config.getServerPort(), http -> {
                     if (http.succeeded()) {
                         startFuture.complete();
-                        logger.info("HTTP server started on http://localhost:", config.SERVER_PORT);
+                        logger.info("Synapse Keycloak Adapter started @ http://localhost:" + config.getServerPort());
                     } else {
-                        logger.info("HTTP server failed to start on http://localhost:", config.SERVER_PORT);
+                        logger.info("Synapse Keycloak Adapter failed to start @ http://localhost:" + config.getServerPort());
                         startFuture.fail(http.cause());
                     }
                 });
