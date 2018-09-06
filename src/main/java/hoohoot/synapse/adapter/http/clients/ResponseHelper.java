@@ -49,7 +49,7 @@ class ResponseHelper {
             case 200:
                 JsonObject keycloakResponse = ar.result().bodyAsJsonObject();
                 UserInfoDigest userinfo = jsonHelper
-                        .extractTokentInfo(keycloakResponse
+                        .extractUserInfoFromToken(keycloakResponse
                         .getString("access_token"));
 
                 routingContext.response().setStatusCode(200);

@@ -24,22 +24,25 @@ import static hoohoot.synapse.adapter.http.commons.Routes.MX_SINGLE_PID_URI;
 import static hoohoot.synapse.adapter.http.commons.Routes.MX_USER_SEARCH_URI;
 
 public class MxisdHandler extends AbstractVerticle {
+    private final Logger logger = LoggerFactory.getLogger(MxisdHandler.class);
+
+    private static final String ACCESS_TOKEN = "access_token";
+
     private final JsonHelper jsonHelper;
     private final String keycloakUserSearchURI;
     private final OauthService oauthService;
-    private Logger logger = LoggerFactory.getLogger(MxisdHandler.class);
-
-    private WebClient webClient;
-    private ServerConfig config;
-    private  final String ACCESS_TOKEN = "access_token";
-
+    private final WebClient webClient;
+    private final ServerConfig config;
 
     public MxisdHandler(WebClient webClient, ServerConfig config, JsonHelper jsonHelper, OauthService oauthService) {
         this.oauthService = oauthService;
         this.jsonHelper = jsonHelper;
         this.webClient = webClient;
         this.config = config;
-        this.keycloakUserSearchURI = "/auth/admin/realms/" + config.getRealm() + "/users";
+        this.keycloakUserSearchURI = new StringBuffer("/auth/admin/realms/")
+                .append(config.getRealm())
+                .append("/users")
+                .toString();
     }
 
     public void loginHandler(RoutingContext routingContext) {
@@ -48,7 +51,7 @@ public class MxisdHandler extends AbstractVerticle {
         final String keycloakPassword = authRequestBody.getString("password");
         final String username = authRequestBody.getString("localpart");
 
-        MultiMap form = jsonHelper.getUserForm(keycloakPassword, username);
+        MultiMap form = jsonHelper.buildUserForm(keycloakPassword, username);
 
         HttpRequest<Buffer> request = oauthService.generateAccessTokenRequest();
 
@@ -62,17 +65,12 @@ public class MxisdHandler extends AbstractVerticle {
                 });
     }
 
-
     public void searchHandler(RoutingContext routingContext, String joltSpec) {
-
         JsonObject requestBody = routingContext.getBodyAsJson();
         String accessToken = routingContext.get(ACCESS_TOKEN);
         String mxRequestUri = routingContext.request().uri();
 
-        HttpRequest<Buffer> request = generateSearchRequest(
-                mxRequestUri,
-                requestBody,
-                accessToken);
+        HttpRequest<Buffer> request = buildSearchRequest(mxRequestUri, requestBody, accessToken);
 
         request.send(ar -> checkStatusCodeAndRespond(ar, routingContext, joltSpec));
     }
@@ -82,7 +80,7 @@ public class MxisdHandler extends AbstractVerticle {
 
         JsonArray bulkPID = routingContext.getBodyAsJson().getJsonArray("lookup");
         ArrayList<String> searchStrings = getSearchStringsFromBulkPids(bulkPID);
-        List<Future> pidFutures = startRequestFuture(searchStrings, routingContext, accessToken);
+        List<Future> pidFutures = buildBulkSearchFutures(searchStrings, routingContext, accessToken);
 
         CompositeFuture.join(pidFutures).setHandler(ar -> {
             if (ar.succeeded()) {
@@ -95,13 +93,12 @@ public class MxisdHandler extends AbstractVerticle {
         });
     }
 
-    private List<Future> startRequestFuture(ArrayList<String> searchStrings,
-                                            RoutingContext routingContext,
-                                            String accessToken) {
+    private List<Future> buildBulkSearchFutures(ArrayList<String> searchStrings, RoutingContext routingContext,
+                                                String accessToken) {
         return searchStrings.stream().map(email -> {
 
             Future<JsonObject> requestFuture = Future.future();
-            HttpRequest<Buffer> request = initRequest(accessToken);
+            HttpRequest<Buffer> request = initializeRequestWithAuthorization(accessToken);
 
             //forcing email on 3PID bulk search for now
             request.addQueryParam("email", email);
@@ -137,19 +134,14 @@ public class MxisdHandler extends AbstractVerticle {
 
     }
 
-    private HttpRequest<Buffer> generateSearchRequest(
-            String mxRequestUri,
-            JsonObject requestBody,
-            String accessToken) {
-
-        HttpRequest<Buffer> request = initRequest(accessToken);
+    private HttpRequest<Buffer> buildSearchRequest(String mxRequestUri, JsonObject requestBody, String accessToken) {
+        HttpRequest<Buffer> request = initializeRequestWithAuthorization(accessToken);
 
         switch (mxRequestUri) {
             case (MX_USER_SEARCH_URI):
                 String searchTerm = requestBody.getString("search_term");
                 request.addQueryParam("search", searchTerm);
                 break;
-
             case (MX_SINGLE_PID_URI):
                 // TODO : write jolt specs for pid search
                 JsonObject lookup = requestBody.getJsonObject("lookup");
@@ -159,7 +151,6 @@ public class MxisdHandler extends AbstractVerticle {
                 //artificially return a single response
                 request.addQueryParam("max", "1");
                 break;
-
             default:
                 break;
         }
@@ -169,7 +160,7 @@ public class MxisdHandler extends AbstractVerticle {
         return request;
     }
 
-    private HttpRequest<Buffer> initRequest(String accessToken) {
+    private HttpRequest<Buffer> initializeRequestWithAuthorization(String accessToken) {
         HttpRequest<Buffer> request = this.webClient.get(443, config.getKeycloakHost(), keycloakUserSearchURI);
         request.headers().add("Authorization", "Bearer " + accessToken);
         return request;
