@@ -11,7 +11,7 @@ import java.util.List;
 
 public class JsonHelper {
 
-    public UserInfoDigest extractTokentInfo(String bearer) {
+    public UserInfoDigest extractUserInfoFromToken(String bearer) {
         String[] splittedJWT = bearer.split("\\.");
         byte[] decodedBytes = Base64.getDecoder().decode(splittedJWT[1]);
         String decodedPayload = new String(decodedBytes);
@@ -29,7 +29,7 @@ public class JsonHelper {
         }
     }
 
-    public MultiMap getUserForm(String keycloakPassword, String keycloakUsername) {
+    public MultiMap buildUserForm(String keycloakPassword, String keycloakUsername) {
         MultiMap form = MultiMap.caseInsensitiveMultiMap();
 
         form.add("username", keycloakUsername);
