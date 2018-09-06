@@ -42,18 +42,6 @@ public class ServerConfig {
         postConstruct();
     }
 
-    public String getKeycloakClientBasicAuth() {
-        byte[] bytesToEncode = new StringBuffer(keycloakClientId)
-                .append(":")
-                .append(keycloakClientSecret)
-                .toString()
-                .getBytes(StandardCharsets.UTF_8);
-
-        return new StringBuffer("Basic ")
-                .append(Base64.getEncoder().encodeToString(bytesToEncode))
-                .toString();
-    }
-
     private void postConstruct() throws ConfigurationException {
         logger.info("====== Server Config ======");
 
@@ -61,7 +49,6 @@ public class ServerConfig {
             logger.error("SYNAPSE_HOST is empty !");
             throw new ConfigurationException();
         }
-        logger.info("SYNAPSE HOST: " + synapseHost);
 
         if (StringUtils.isBlank(keycloakHost)) {
             logger.error("KEYCLOAK_HOST is empty !");
@@ -108,12 +95,25 @@ public class ServerConfig {
             sslActive = SSL_ACTIVE_DEFAULT;
         }
 
+        logger.info("SYNAPSE HOST: " + synapseHost);
         logger.info("KEYCLOAK CLIENT URI: " + realm);
         logger.info("KEYCLOAK HOST: " + keycloakHost);
         logger.info("KEYCLOAK SEARCH_USER: " + keycloakSearchUsername);
         logger.debug("KEYCLOAK SEARCH PASSWORD" + keycloakSearchPassword);
         logger.info("USER_AGENT : " + userAgent);
         logger.info("SERVER_PORT : " + serverPort);
+    }
+
+    public String getKeycloakClientBasicAuth() {
+        byte[] bytesToEncode = new StringBuffer(keycloakClientId)
+                .append(":")
+                .append(keycloakClientSecret)
+                .toString()
+                .getBytes(StandardCharsets.UTF_8);
+
+        return new StringBuffer("Basic ")
+                .append(Base64.getEncoder().encodeToString(bytesToEncode))
+                .toString();
     }
 
     public String getSynapseHost() {
