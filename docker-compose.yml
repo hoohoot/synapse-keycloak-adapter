@@ -47,8 +47,8 @@ services:
     - KEYCLOAK_HOST="auth.example.org"
     - SYNAPSE_HOST="auth.example.org";
     - REALM=testing;
-    - KEYCLOAK_CLIENT_BASIC=Basic base64(client-id:client-secret)=;
-    - KEYCLOAK_SEARCH_USERNAME=username;
+    - KEYCLOAK_CLIENT_ID=my_client_id
+    - KEYCLOAK_CLIENT_SECRET=my_client_secret
     - KEYCLOAK_SEARCH_PASSWORD=password
 
   riot:

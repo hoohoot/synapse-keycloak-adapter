@@ -1,6 +1,6 @@
 package hoohoot.synapse.adapter.http.clients;
 
-import hoohoot.synapse.adapter.conf.MainConfiguration;
+import hoohoot.synapse.adapter.conf.ServerConfig;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
@@ -30,16 +30,16 @@ public class MxisdHandler extends AbstractVerticle {
     private Logger logger = LoggerFactory.getLogger(MxisdHandler.class);
 
     private WebClient webClient;
-    private MainConfiguration config;
+    private ServerConfig config;
     private  final String ACCESS_TOKEN = "access_token";
 
 
-    public MxisdHandler(WebClient webClient, MainConfiguration config, JsonHelper jsonHelper, OauthService oauthService) {
+    public MxisdHandler(WebClient webClient, ServerConfig config, JsonHelper jsonHelper, OauthService oauthService) {
         this.oauthService = oauthService;
         this.jsonHelper = jsonHelper;
         this.webClient = webClient;
         this.config = config;
-        this.keycloakUserSearchURI = "/auth/admin/realms/" + config.REALM + "/users";
+        this.keycloakUserSearchURI = "/auth/admin/realms/" + config.getRealm() + "/users";
     }
 
     public void loginHandler(RoutingContext routingContext) {
@@ -111,7 +111,7 @@ public class MxisdHandler extends AbstractVerticle {
                     checkFutureStatusCodeAndRespond(ar,
                             routingContext,
                             requestFuture,
-                            config.SYNAPSE_HOST
+                            config.getSynapseHost()
                     );
                 } else {
                     requestFuture.fail("failed to query email " + email);
@@ -170,7 +170,7 @@ public class MxisdHandler extends AbstractVerticle {
     }
 
     private HttpRequest<Buffer> initRequest(String accessToken) {
-        HttpRequest<Buffer> request = this.webClient.get(443, config.KEYCLOAK_HOST, keycloakUserSearchURI);
+        HttpRequest<Buffer> request = this.webClient.get(443, config.getKeycloakHost(), keycloakUserSearchURI);
         request.headers().add("Authorization", "Bearer " + accessToken);
         return request;
     }

@@ -5,8 +5,9 @@ services:
     build: .
     environment:
     - SYNAPSE_HOST="chat.example.org"
-    - KEYCLOAK_CLIENT_URI="/auth/realms/testing/protocol/openid-connect/token"
-    - KEYCLOAK_CLIENT_BASIC="Basic lkjljdskjlkjdsflkjfds="
     - KEYCLOAK_HOST="auth.example.org"
+    - REALM=testing;
+    - KEYCLOAK_CLIENT_ID=my_client_id
+    - KEYCLOAK_CLIENT_SECRET=my_client_secret
     ports:
     - 8480:8080
