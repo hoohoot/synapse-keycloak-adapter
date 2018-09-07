@@ -50,8 +50,6 @@ public class MainVerticle extends AbstractVerticle {
                 .put("ping", "pong")
                 .encodePrettily()));
 
-        router.get("/health_check").handler(MxisdHandler::healthCheckHandler);
-
         server.requestHandler(router::accept)
                 .listen(config.getServerPort(), http -> {
                     if (http.succeeded()) {

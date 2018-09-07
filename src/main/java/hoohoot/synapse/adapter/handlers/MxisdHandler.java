@@ -105,7 +105,7 @@ public class MxisdHandler extends AbstractVerticle {
             Future<JsonObject> requestFuture = Future.future();
             HttpRequest<Buffer> request = initializeRequestWithAuthorization(accessToken);
 
-            //forcing email on 3PID bulk search for now
+            //TODO: forcing email on 3PID bulk search for now
             request.addQueryParam("email", email);
 
             request.send(ar -> {
@@ -132,11 +132,6 @@ public class MxisdHandler extends AbstractVerticle {
         }
 
         return searchStrings;
-    }
-
-    // TODO : implement this
-    public static void healthCheckHandler(RoutingContext routingContext) {
-
     }
 
     private HttpRequest<Buffer> buildSearchRequest(String mxRequestUri, JsonObject requestBody, String accessToken) {
