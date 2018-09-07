@@ -33,8 +33,8 @@ docker-build-unstable:
     - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
     - docker push "$CI_REGISTRY_IMAGE:unstable"
     - docker logout
-  except:
-    - master
+  only:
+    - develop
 
 docker-build-master:
   stage: package
