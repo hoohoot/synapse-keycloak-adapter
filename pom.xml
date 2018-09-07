@@ -37,41 +37,44 @@
   </dependencyManagement>
 
   <dependencies>
+
+    <!-- VERTX DEPENDENCIES -->
+
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-core</artifactId>
       <version>${vertx.version}</version>
     </dependency>
-
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-web-client</artifactId>
       <version>${vertx.version}</version>
     </dependency>
-
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-junit5</artifactId>
       <version>${vertx.version}</version>
     </dependency>
-
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-web</artifactId>
       <version>${vertx.version}</version>
     </dependency>
 
+    <!-- JOLT DEPENDENCIES-->
+
     <dependency>
       <groupId>com.bazaarvoice.jolt</groupId>
       <artifactId>jolt-core</artifactId>
       <version>0.1.1</version>
     </dependency>
-
     <dependency>
       <groupId>com.bazaarvoice.jolt</groupId>
       <artifactId>json-utils</artifactId>
       <version>0.1.1</version>
     </dependency>
+
+    <!-- TEST DEPENDENCIES -->
 
     <dependency>
       <groupId>org.junit.platform</groupId>
