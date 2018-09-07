@@ -3,6 +3,7 @@ package hoohoot.synapse.adapter.helpers;
 import hoohoot.synapse.adapter.common.HttpJsonErrors;
 import hoohoot.synapse.adapter.common.JoltMapper;
 import hoohoot.synapse.adapter.models.UserInfoDigest;
+import io.netty.handler.codec.http.HttpResponseStatus;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
 import io.vertx.core.MultiMap;
@@ -14,12 +15,9 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpResponse;
 
 public class ResponseHelper {
-
     private static final Logger logger = LoggerFactory.getLogger(ResponseHelper.class);
 
-    private ResponseHelper() {
-
-    }
+    private ResponseHelper() { }
 
     public static void respondWithStatusCode502(RoutingContext routingContext) {
         logger.warn("Couldn't get response from keycloak");
@@ -31,12 +29,6 @@ public class ResponseHelper {
         logger.warn("Keycloak responded with Status code 401");
         routingContext.response().setStatusCode(401);
         routingContext.response().end(HttpJsonErrors.UNAUTHORIZED.encodePrettily());
-    }
-
-    private static void respondWithStatusCode403(RoutingContext routingContext) {
-        logger.warn("Keycloak responded with Status code 403");
-        routingContext.response().setStatusCode(403);
-        routingContext.response().end(HttpJsonErrors.FORBIDDEN.encodePrettily());
     }
 
     public static void checkUserAndRequestSynapseLogin(AsyncResult<HttpResponse<Buffer>> ar,
@@ -107,31 +99,32 @@ public class ResponseHelper {
                                                        Future<JsonObject> future,
                                                        String matrixDomain) {
         ar.result();
-        switch (ar.result().statusCode()) {
-            case 200:
-                JsonObject transformedResponse = JoltMapper.transform(
-                        ar.result().bodyAsJsonArray(), "bulk-search-spec.json", matrixDomain);
-                routingContext.response().setChunked(true);
-                routingContext.response().headers().add("content-type", "application/json");
-                future.complete(transformedResponse);
-                break;
-            case 400:
-                logger.warn("A request in the bulk failed : 400 Method not allowed");
-                future.fail("Method not allowed");
-                break;
-            case 401:
-                logger.warn("A request in the bulk failed : 401 Unothorized");
-                future.fail("Unauthorized");
-                break;
-            case 403:
-                logger.warn("A request in the bulk failed : 403 Forbidden");
-                future.fail("Forbidden");
-                break;
-            default:
-                logger.warn("A request in the bulk did not reach keycloak");
-                future.fail("Unable to contact keycloak");
-                break;
+        Integer responseStatusCode = ar.result().statusCode();
+
+        if (responseStatusCode.equals(HttpResponseStatus.OK.code())) {
+            JsonObject transformedResponse = JoltMapper.transform(
+                    ar.result().bodyAsJsonArray(), "bulk-search-spec.json", matrixDomain);
+
+            routingContext.response().setChunked(true);
+            routingContext.response().headers().add("content-type", "application/json");
+
+            future.complete(transformedResponse);
+        } else if (responseStatusCode.equals(HttpResponseStatus.METHOD_NOT_ALLOWED.code())){
+            logger.warn("A request in the bulk failed with status : " + HttpResponseStatus.METHOD_NOT_ALLOWED.reasonPhrase());
+            future.fail(HttpResponseStatus.METHOD_NOT_ALLOWED.reasonPhrase());
+        } else if (responseStatusCode.equals(HttpResponseStatus.UNAUTHORIZED.code())) {
+            logger.warn("A request in the bulk failed with status : 403 Forbidden" + HttpResponseStatus.FORBIDDEN.reasonPhrase());
+            future.fail(HttpResponseStatus.FORBIDDEN.reasonPhrase());
+        } else {
+            logger.warn("A request in the bulk did not reach keycloak");
+            future.fail("Unable to contact Keycloak");
         }
+
     }
 
+    private static void respondWithStatusCode403(RoutingContext routingContext) {
+        logger.warn("Keycloak responded with Status code 403");
+        routingContext.response().setStatusCode(403);
+        routingContext.response().end(HttpJsonErrors.FORBIDDEN.encodePrettily());
+    }
 }
