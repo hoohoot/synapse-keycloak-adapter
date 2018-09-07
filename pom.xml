@@ -22,7 +22,6 @@
     <junit-platform-launcher.version>1.2.0</junit-platform-launcher.version>
 
     <main.verticle>hoohoot.synapse.adapter.server.MainVerticle</main.verticle>
-    <vertx.logger-delegate-factory-class-name>io.vertx.core.logging.SLF4JLogDelegateFactory</vertx.logger-delegate-factory-class-name>
   </properties>
 
   <dependencyManagement>
@@ -61,6 +60,9 @@
       <artifactId>vertx-web</artifactId>
       <version>${vertx.version}</version>
     </dependency>
+
+    <!-- LOGGING DEPENDENCIES-->
+
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
