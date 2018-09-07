@@ -2,6 +2,8 @@
 ![code-smells](https://sonar.hoohoot.org/api/project_badges/measure?project=io.vertx%3Akeycloak-synapse-adapter&metric=code_smells)
 ![bugs](https://sonar.hoohoot.org/api/project_badges/measure?project=io.vertx%3Akeycloak-synapse-adapter&metric=bugs)
 
+[![pipeline status](https://framagit.org/hoohoot/synapse-keycloak-adapter/badges/master/pipeline.svg)](https://framagit.org/hoohoot/synapse-keycloak-adapter/commits/master)
+
 # Synapse Keycloak Adapter
 
 A simple keycloak adapter for Matrix Synapse allowing to 
