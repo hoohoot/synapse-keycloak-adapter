@@ -1,4 +1,4 @@
-package hoohoot.synapse.adapter.http.clients;
+package hoohoot.synapse.adapter.helpers;
 
 import hoohoot.synapse.adapter.models.UserInfoDigest;
 import io.vertx.core.Future;
@@ -11,7 +11,26 @@ import java.util.List;
 
 public class JsonHelper {
 
-    public UserInfoDigest extractUserInfoFromToken(String bearer) {
+    public MultiMap buildUserForm(String keycloakPassword, String keycloakUsername) {
+        MultiMap form = MultiMap.caseInsensitiveMultiMap();
+
+        form.add("username", keycloakUsername);
+        form.add("password", keycloakPassword);
+        form.add("grant_type", "password");
+
+        return form;
+    }
+
+    public JsonObject buildBulkSearchResponse(List<Future> pidFutures) {
+        JsonArray lookups = new JsonArray();
+        pidFutures.stream().map(Future::result)
+                .forEach(lookups::add);
+        return new JsonObject()
+                .put("lookup", new JsonArray()
+                        .addAll(lookups));
+    }
+
+    UserInfoDigest extractUserInfoFromToken(String bearer) {
         String[] splittedJWT = bearer.split("\\.");
         byte[] decodedBytes = Base64.getDecoder().decode(splittedJWT[1]);
         String decodedPayload = new String(decodedBytes);
@@ -29,17 +48,7 @@ public class JsonHelper {
         }
     }
 
-    public MultiMap buildUserForm(String keycloakPassword, String keycloakUsername) {
-        MultiMap form = MultiMap.caseInsensitiveMultiMap();
-
-        form.add("username", keycloakUsername);
-        form.add("password", keycloakPassword);
-        form.add("grant_type", "password");
-
-        return form;
-    }
-
-    public JsonObject buildSynapseLoginJsonBody(UserInfoDigest userInfoDigest) {
+    JsonObject buildSynapseLoginJsonBody(UserInfoDigest userInfoDigest) {
 
         JsonObject auth = new JsonObject();
 
@@ -63,15 +72,6 @@ public class JsonHelper {
         profile.put("three_pids", treePids);
         auth.put("profile", profile);
         return new JsonObject().put("auth", auth);
-    }
-
-    public JsonObject buildBulkResponse(List<Future> pidFutures) {
-        JsonArray lookups = new JsonArray();
-        pidFutures.stream().map(Future::result)
-                .forEach(lookups::add);
-        return new JsonObject()
-                .put("lookup", new JsonArray()
-                .addAll(lookups));
     }
 
 }

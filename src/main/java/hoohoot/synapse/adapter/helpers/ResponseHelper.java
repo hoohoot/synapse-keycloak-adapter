@@ -1,7 +1,7 @@
-package hoohoot.synapse.adapter.http.clients;
+package hoohoot.synapse.adapter.helpers;
 
-import hoohoot.synapse.adapter.http.commons.HttpJsonErrors;
-import hoohoot.synapse.adapter.http.commons.JoltMapper;
+import hoohoot.synapse.adapter.common.HttpJsonErrors;
+import hoohoot.synapse.adapter.common.JoltMapper;
 import hoohoot.synapse.adapter.models.UserInfoDigest;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Future;
@@ -13,7 +13,7 @@ import io.vertx.core.logging.LoggerFactory;
 import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpResponse;
 
-class ResponseHelper {
+public class ResponseHelper {
 
     private static final Logger logger = LoggerFactory.getLogger(ResponseHelper.class);
 
@@ -21,7 +21,7 @@ class ResponseHelper {
 
     }
 
-    static void respondWithStatusCode502(RoutingContext routingContext) {
+    public static void respondWithStatusCode502(RoutingContext routingContext) {
         logger.warn("Couldn't get response from keycloak");
         routingContext.response().setStatusCode(502);
         routingContext.response().end(HttpJsonErrors.BADGATEWAY.encodePrettily());
@@ -39,9 +39,9 @@ class ResponseHelper {
         routingContext.response().end(HttpJsonErrors.FORBIDDEN.encodePrettily());
     }
 
-    static void checkUserAndRequestSynapseLogin(AsyncResult<HttpResponse<Buffer>> ar,
-                                                RoutingContext routingContext,
-                                                MultiMap form) {
+    public static void checkUserAndRequestSynapseLogin(AsyncResult<HttpResponse<Buffer>> ar,
+                                                       RoutingContext routingContext,
+                                                       MultiMap form) {
         JsonHelper jsonHelper = new JsonHelper();
 
         ar.result();
@@ -77,9 +77,9 @@ class ResponseHelper {
         routingContext.response().end();
     }
 
-    static void checkStatusCodeAndRespond(AsyncResult<HttpResponse<Buffer>> ar,
-                                          RoutingContext routingContext,
-                                          String joltSpec) {
+    public static void checkStatusCodeAndRespond(AsyncResult<HttpResponse<Buffer>> ar,
+                                                 RoutingContext routingContext,
+                                                 String joltSpec) {
         ar.result();
         switch (ar.result().statusCode()) {
             case 200:
@@ -102,10 +102,10 @@ class ResponseHelper {
         routingContext.response().end();
     }
 
-    static void checkFutureStatusCodeAndRespond(AsyncResult<HttpResponse<Buffer>> ar,
-                                                RoutingContext routingContext,
-                                                Future<JsonObject> future,
-                                                String matrixDomain) {
+    public static void checkFutureStatusCodeAndRespond(AsyncResult<HttpResponse<Buffer>> ar,
+                                                       RoutingContext routingContext,
+                                                       Future<JsonObject> future,
+                                                       String matrixDomain) {
         ar.result();
         switch (ar.result().statusCode()) {
             case 200:

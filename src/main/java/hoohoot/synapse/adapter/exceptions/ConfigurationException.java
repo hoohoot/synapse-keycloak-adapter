@@ -1,4 +1,4 @@
-package hoohoot.synapse.adapter.http.exceptions;
+package hoohoot.synapse.adapter.exceptions;
 
 public class ConfigurationException extends Exception {
     public ConfigurationException() {
