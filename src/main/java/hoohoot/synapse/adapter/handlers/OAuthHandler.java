@@ -1,6 +1,7 @@
-package hoohoot.synapse.adapter.http.clients;
+package hoohoot.synapse.adapter.handlers;
 
 import hoohoot.synapse.adapter.conf.ServerConfig;
+import hoohoot.synapse.adapter.helpers.JsonHelper;
 import io.vertx.core.MultiMap;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
@@ -10,18 +11,18 @@ import io.vertx.ext.web.RoutingContext;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
 
-import static hoohoot.synapse.adapter.http.clients.ResponseHelper.respondWithStatusCode401;
-import static hoohoot.synapse.adapter.http.clients.ResponseHelper.respondWithStatusCode502;
+import static hoohoot.synapse.adapter.helpers.ResponseHelper.respondWithStatusCode401;
+import static hoohoot.synapse.adapter.helpers.ResponseHelper.respondWithStatusCode502;
 
-public class OauthService {
+public class OAuthHandler {
+    private final Logger logger = LoggerFactory.getLogger(OAuthHandler.class);
 
-    private final Logger logger = LoggerFactory.getLogger(OauthService.class);
     private final ServerConfig config;
     private final JsonHelper jsonHelper;
     private final WebClient webClient;
     private final String loginUri;
 
-    public OauthService(JsonHelper jsonHelper, ServerConfig config, WebClient webClient) {
+    public OAuthHandler(JsonHelper jsonHelper, ServerConfig config, WebClient webClient) {
         this.config = config;
         this.jsonHelper = jsonHelper;
         this.webClient = webClient;

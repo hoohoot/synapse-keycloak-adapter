@@ -1,6 +1,7 @@
-package hoohoot.synapse.adapter.http.clients;
+package hoohoot.synapse.adapter.handlers;
 
 import hoohoot.synapse.adapter.conf.ServerConfig;
+import hoohoot.synapse.adapter.helpers.JsonHelper;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.CompositeFuture;
 import io.vertx.core.Future;
@@ -19,9 +20,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static hoohoot.synapse.adapter.http.clients.ResponseHelper.*;
-import static hoohoot.synapse.adapter.http.commons.Routes.MX_SINGLE_PID_URI;
-import static hoohoot.synapse.adapter.http.commons.Routes.MX_USER_SEARCH_URI;
+import static hoohoot.synapse.adapter.conf.Routes.MXISD_SINGLEPID_SEARCH;
+import static hoohoot.synapse.adapter.conf.Routes.MXISD_USER_SEARCH;
+import static hoohoot.synapse.adapter.helpers.ResponseHelper.*;
 
 public class MxisdHandler extends AbstractVerticle {
     private final Logger logger = LoggerFactory.getLogger(MxisdHandler.class);
@@ -30,12 +31,12 @@ public class MxisdHandler extends AbstractVerticle {
 
     private final JsonHelper jsonHelper;
     private final String keycloakUserSearchURI;
-    private final OauthService oauthService;
+    private final OAuthHandler oauthHandler;
     private final WebClient webClient;
     private final ServerConfig config;
 
-    public MxisdHandler(WebClient webClient, ServerConfig config, JsonHelper jsonHelper, OauthService oauthService) {
-        this.oauthService = oauthService;
+    public MxisdHandler(WebClient webClient, ServerConfig config, JsonHelper jsonHelper, OAuthHandler oauthHandler) {
+        this.oauthHandler = oauthHandler;
         this.jsonHelper = jsonHelper;
         this.webClient = webClient;
         this.config = config;
@@ -54,7 +55,7 @@ public class MxisdHandler extends AbstractVerticle {
 
         MultiMap form = jsonHelper.buildUserForm(keycloakPassword, username);
 
-        HttpRequest<Buffer> request = oauthService.generateAccessTokenRequest();
+        HttpRequest<Buffer> request = oauthHandler.generateAccessTokenRequest();
 
         request
                 .sendForm(form, ar -> {
@@ -88,7 +89,7 @@ public class MxisdHandler extends AbstractVerticle {
         CompositeFuture.join(pidFutures).setHandler(ar -> {
             if (ar.succeeded()) {
                 logger.debug("Bulk Search succeeded");
-                JsonObject bulkResult = jsonHelper.buildBulkResponse(pidFutures);
+                JsonObject bulkResult = jsonHelper.buildBulkSearchResponse(pidFutures);
                 routingContext.response().end(bulkResult.encodePrettily());
             } else {
                 logger.warn("Bulk request failed");
@@ -104,7 +105,7 @@ public class MxisdHandler extends AbstractVerticle {
             Future<JsonObject> requestFuture = Future.future();
             HttpRequest<Buffer> request = initializeRequestWithAuthorization(accessToken);
 
-            //forcing email on 3PID bulk search for now
+            //TODO: forcing email on 3PID bulk search for now
             request.addQueryParam("email", email);
 
             request.send(ar -> {
@@ -133,20 +134,15 @@ public class MxisdHandler extends AbstractVerticle {
         return searchStrings;
     }
 
-    // TODO : implement this
-    public static void healthCheckHandler(RoutingContext routingContext) {
-
-    }
-
     private HttpRequest<Buffer> buildSearchRequest(String mxRequestUri, JsonObject requestBody, String accessToken) {
         HttpRequest<Buffer> request = initializeRequestWithAuthorization(accessToken);
 
         switch (mxRequestUri) {
-            case (MX_USER_SEARCH_URI):
+            case (MXISD_USER_SEARCH):
                 String searchTerm = requestBody.getString("search_term");
                 request.addQueryParam("search", searchTerm);
                 break;
-            case (MX_SINGLE_PID_URI):
+            case (MXISD_SINGLEPID_SEARCH):
                 // TODO : write jolt specs for pid search
                 JsonObject lookup = requestBody.getJsonObject("lookup");
                 String value = lookup.getString("address");
