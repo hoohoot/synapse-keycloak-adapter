@@ -1,6 +1,6 @@
 package hoohoot.synapse.adapter.conf;
 
-import hoohoot.synapse.adapter.http.exceptions.ConfigurationException;
+import hoohoot.synapse.adapter.exceptions.ConfigurationException;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 import org.junit.platform.commons.util.StringUtils;

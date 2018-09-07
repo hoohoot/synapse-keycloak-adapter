@@ -1,4 +1,4 @@
-package hoohoot.synapse.adapter.http.commons;
+package hoohoot.synapse.adapter.common;
 
 import com.bazaarvoice.jolt.Chainr;
 import com.bazaarvoice.jolt.JsonUtils;
