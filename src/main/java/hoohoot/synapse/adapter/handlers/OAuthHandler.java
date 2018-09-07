@@ -26,7 +26,7 @@ public class OAuthHandler {
         this.config = config;
         this.jsonHelper = jsonHelper;
         this.webClient = webClient;
-        this.loginUri = "/auth/realms/" + config.getRealm() + "/protocol/openid-connect/token";
+        this.loginUri = buildLoginUriFromRealm(config.getRealm());
     }
 
     public void getSearchAccessToken(RoutingContext routingContext) {
@@ -50,12 +50,19 @@ public class OAuthHandler {
         });
     }
 
-    protected HttpRequest<Buffer> generateAccessTokenRequest() {
+     HttpRequest<Buffer> generateAccessTokenRequest() {
         HttpRequest<Buffer> request = this.webClient.post(443, config.getKeycloakHost(), loginUri);
         request.headers().add("Authorization", config.getKeycloakClientBasicAuth());
         request.headers().add("content-type", "application/x-www-form-urlencoded");
         request.ssl(true);
         request.method(HttpMethod.POST);
         return request;
+    }
+
+    private String buildLoginUriFromRealm(String realm) {
+        return new StringBuffer("/auth/realms/")
+                .append(config.getRealm())
+                .append("/protocol/openid-connect/token")
+                .toString();
     }
 }
