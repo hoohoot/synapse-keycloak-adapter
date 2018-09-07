@@ -24,8 +24,19 @@ maven-build:
   artifacts:
     paths:
       - target/*.jar
-  
-build-master:
+
+docker-build-unstable:
+  stage: package
+  script:
+    - docker build --pull -t "$CI_REGISTRY_IMAGE" .
+    - docker images
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+    - docker push "$CI_REGISTRY_IMAGE:unstable"
+    - docker logout
+  only:
+    - develop
+
+docker-build-master:
   stage: package
   script:
     - docker build --pull -t "$CI_REGISTRY_IMAGE" .
