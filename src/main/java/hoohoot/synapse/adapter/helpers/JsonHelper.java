@@ -30,7 +30,7 @@ public class JsonHelper {
                         .addAll(lookups));
     }
 
-    UserInfoDigest extractUserInfoFromToken(String bearer) {
+    public UserInfoDigest extractUserInfoFromToken(String bearer) {
         String[] splittedJWT = bearer.split("\\.");
         byte[] decodedBytes = Base64.getDecoder().decode(splittedJWT[1]);
         String decodedPayload = new String(decodedBytes);
@@ -48,7 +48,7 @@ public class JsonHelper {
         }
     }
 
-    JsonObject buildSynapseLoginJsonBody(UserInfoDigest userInfoDigest) {
+    public JsonObject buildSynapseLoginJsonBody(UserInfoDigest userInfoDigest) {
 
         JsonObject auth = new JsonObject();
 
